@@ -39,3 +39,14 @@ your Mac. Tick them when you run a milestone build (`make install`, then
 - [ ] VoiceOver reads each tile as "<name>, sends as <address>, key <k>, button".
 - `scripts/snapshot-chooser.sh` renders all three layouts to `.context/snapshots/` for a look
   without opening anything.
+
+## M5 — release and tap (you, once the cert exists)
+
+- [ ] `scripts/create-release-cert.sh --out Segue-Release` → identity in the keychain, `.p12` in the
+      password manager, leaf hash pasted into README.md.
+- [ ] `scripts/release.sh 0.1.0` → `dist/Segue-0.1.0.zip`, tag `v0.1.0`; `gh release create …`.
+- [ ] `scripts/update-tap.sh --tap ~/GitProjects/personal/homebrew-tap --version 0.1.0 --zip dist/Segue-0.1.0.zip`,
+      commit and push the tap.
+- [ ] On a clean Mac (or after `brew uninstall --cask segue`): `brew install --cask jeremym/tap/segue`
+      → `open -a Segue` launches with no Gatekeeper prompt → Make Segue default → links route.
+- [ ] `brew upgrade` later keeps the default and shows no prompt.
