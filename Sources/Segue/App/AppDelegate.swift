@@ -19,9 +19,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var pendingWork = 0
     private var placeholderWindow: NSWindow?
     private var chooser: ChooserPanel?
+    private var readers: [ReaderWindowController] = []
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         Timing.mark("willFinishLaunching")
+        Log.fileURL = options.supportDirectory.appendingPathComponent("segue.log")
+        Log.write("launch \(SegueVersion.string) args=\(CommandLine.arguments.dropFirst().joined(separator: " "))")
         // Register before the launch events arrive. The system delivers a
         // kAEGetURL for a mailto: that caused a cold launch right after this.
         NSAppleEventManager.shared().setEventHandler(
@@ -33,6 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Log.write("didFinishLaunching pendingWork=\(pendingWork)")
         if pendingWork == 0 {
             showPlaceholder()
         }
@@ -41,7 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        !config.general.stayRunning
+        !config.general.stayRunning && pendingWork == 0
     }
 
     // MARK: - Incoming events
@@ -59,20 +63,109 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let context = RouteContext(kind: .mailto, request: request, source: source, forceChooser: forced)
             route(context)
         } else if urlString.lowercased().hasPrefix("x-segue:") {
-            NSLog("Segue: x-segue:// commands arrive in M11 (%@)", urlString)
+            Log.write(String(format: "x-segue:// commands arrive in M11 (%@)", urlString))
             finishWork()
         } else {
-            NSLog("Segue: ignoring URL %@", urlString)
+            Log.write(String(format: "ignoring URL %@", urlString))
             finishWork()
         }
     }
 
+    /// AppKit can deliver the same document twice on a cold launch.
+    private var recentlyOpened: [URL: Date] = [:]
+
     func application(_ application: NSApplication, open urls: [URL]) {
-        pendingWork += 1
+        Log.write("open files: \(urls.map(\.path))")
         for url in urls {
-            NSLog("Segue: .eml files open in M8 (%@)", url.path)
+            if let t = recentlyOpened[url], Date().timeIntervalSince(t) < 2 { continue }
+            recentlyOpened[url] = Date()
+            let ext = url.pathExtension.lowercased()
+            if ext == "eml" || ext == "emlx" {
+                pendingWork += 1
+                openMessage(at: url)
+            } else {
+                Log.write(String(format: "ignoring file %@", url.path))
+            }
         }
-        finishWork()
+    }
+
+    // MARK: - .eml reader
+
+    private func openMessage(at url: URL) {
+        Timing.mark("emlOpen")
+        ensureConfigExists()
+        let message: EmailMessage
+        do { message = try MIMEParser.parse(fileURL: url) } catch {
+            Log.write(String(format: "cannot read %@: %@", url.path, error.localizedDescription))
+            finishWork()
+            return
+        }
+        let myAddresses = config.myAddresses
+        var original = message.original
+        original.deliveredTo = message.resolvedDeliveredTo(myAddresses: myAddresses)
+        let source = SourceAppResolver.frontmost()
+
+        // Rules only *suggest* for a file (opening one is deliberate), unless eml.autoRoute.
+        let preview = RouteContext(kind: .reply, request: ReplyBuilder.build(.reply, from: message, myAddresses: myAddresses),
+                                   source: source, original: original)
+        let suggestion = RuleEngine.evaluate(preview, config: config)
+        if config.eml.autoRoute, let s = suggestion, let d = config.destination(id: s.destinationID) {
+            Log.write(String(format: ".eml auto-routed → %@ (%@)", d.name, s.explanation.text))
+            route(message: message, kind: .reply, to: d, original: original, source: source)
+            return
+        }
+
+        Log.write("parsed \(url.lastPathComponent): subject=\(message.subject) warnings=\(message.parseWarnings) suggestion=\(suggestion?.destinationID ?? "-")")
+        let reader = ReaderWindowController.present(
+            message: message, fileURL: url, config: config, supportDirectory: options.supportDirectory,
+            suggestedID: suggestion?.destinationID,
+            onChoice: { [weak self] choice in
+                guard let self else { return }
+                self.route(message: message, kind: choice.kind, to: choice.destination, original: original, source: source)
+            },
+            onClose: { [weak self] in
+                guard let self else { return }
+                self.readers.removeAll { $0.window == nil || !$0.window!.isVisible }
+                self.finishWork()
+            })
+        readers.append(reader)
+        Timing.mark("readerShown")
+        Log.write("reader shown")
+        if let file = options.snapshotFile {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak reader] in
+                reader?.snapshot(to: file)
+                NSApp.terminate(nil)
+            }
+        }
+        if let marker = options.startupMarker { StartupMarker.write(to: marker) }
+    }
+
+    /// A "Reply with …" click. Gmail destinations that hold the message get
+    /// the real thread (threaded reply, attachments intact); everything else
+    /// gets a compose request with the original quoted.
+    private func route(message: EmailMessage, kind: ReplyBuilder.Kind, to destination: Destination,
+                       original: OriginalMessage, source: SourceApp?) {
+        if destination.type == .webmail, destination.provider == .gmail, let messageID = message.messageID,
+           holds(destination, deliveredTo: original.deliveredTo),
+           let url = ComposeRequest.gmailThreadURL(messageID: messageID, account: destination.account ?? WebmailAccount(email: destination.primarySendsAs)) {
+            Log.write(String(format: "opening the thread in %@", destination.name))
+            launcher.open(url: url, browser: destination.browser, destinationID: destination.id) { [weak self] result in
+                if case .failure(let error) = result { NSLog("Segue: could not open %@: %@", destination.name, error.localizedDescription) }
+                self?.finishWork()
+            }
+            return
+        }
+        let request = ReplyBuilder.build(kind, from: message, myAddresses: config.myAddresses)
+        let contextKind: RouteContext.Kind = kind == .reply ? .reply : (kind == .replyAll ? .replyAll : .forward)
+        let context = RouteContext(kind: contextKind, request: request, source: source, original: original)
+        launch(destination, for: context)
+    }
+
+    private func holds(_ destination: Destination, deliveredTo: String?) -> Bool {
+        guard let received = deliveredTo?.lowercased() else { return false }
+        let mine = (destination.sendsAs ?? []).map { $0.lowercased() }
+        if mine.contains(received) { return true }
+        return destination.account?.email?.lowercased() == received
     }
 
     // MARK: - Routing
@@ -81,10 +174,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let router = Router(config: config, supportDirectory: options.supportDirectory)
         switch router.decide(context) {
         case .launch(let destination, let explanation):
-            NSLog("Segue: %@ → %@ (%@)", context.request.primaryRecipient, destination.name, explanation.text)
+            Log.write(String(format: "%@ → %@ (%@)", context.request.primaryRecipient, destination.name, explanation.text))
             launch(destination, for: context)
         case .chooser(let reason):
-            NSLog("Segue: chooser (%@)", reason)
+            Log.write(String(format: "chooser (%@)", reason))
             showChooser(for: context)
         }
     }
@@ -118,7 +211,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                           app: result.rememberApp, domain: result.rememberDomain, sender: result.rememberSender) {
                 self.config.rules.append(rule)
                 configChanged = true
-                NSLog("Segue: new rule “%@”", rule.name)
+                Log.write(String(format: "new rule “%@”", rule.name))
             }
             if configChanged { try? self.configStore.save(self.config) }
             self.launch(result.destination, for: context)
@@ -145,7 +238,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         fresh.destinations = Discovery.proposeDestinations()
         try? configStore.save(fresh)
         config = configStore.load()
-        NSLog("Segue: first run, proposed %d destinations", fresh.destinations.count)
+        Log.write(String(format: "first run, proposed %d destinations", fresh.destinations.count))
     }
 
     private func launch(_ destination: Destination, for context: RouteContext) {
@@ -154,7 +247,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             case .success(let plan):
                 if let note = plan.note { NSLog("Segue: %@", note) }
             case .failure(let error):
-                NSLog("Segue: could not open %@: %@", destination.name, error.localizedDescription)
+                Log.write(String(format: "could not open %@: %@", destination.name, error.localizedDescription))
             }
             self?.finishWork()
         }
@@ -168,7 +261,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             StartupMarker.write(to: marker)
             return
         }
-        guard pendingWork == 0, placeholderWindow == nil, chooser == nil, !config.general.stayRunning else { return }
+        guard pendingWork == 0, placeholderWindow == nil, chooser == nil, readers.isEmpty, !config.general.stayRunning else { return }
         // Give the launched app's activation a moment to land, then go.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             NSApp.terminate(nil)

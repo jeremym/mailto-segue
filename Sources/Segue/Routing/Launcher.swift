@@ -91,6 +91,15 @@ final class Launcher {
         }
     }
 
+    /// Opens a plain URL in a browser target (used for "Find in Gmail").
+    func open(url: URL, browser: BrowserTarget?, destinationID: String,
+              completion: @escaping @MainActor (Result<Plan, Error>) -> Void) {
+        var plan = Plan(destinationID: destinationID, kind: "url")
+        plan.url = url.absoluteString
+        fill(&plan, browser: browser, url: url)
+        do { try perform(plan, openURL: url, browser: browser, completion: completion) } catch { completion(.failure(error)) }
+    }
+
     // MARK: - Helpers
 
     private func fill(_ plan: inout Plan, browser: BrowserTarget?, url: URL) {

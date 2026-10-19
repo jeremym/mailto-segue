@@ -60,3 +60,18 @@ your Mac. Tick them when you run a milestone build (`make install`, then
       the next link from that app skips the chooser. ⇧D does the same for the recipient's domain.
 - [ ] With `learnDefault` on, the tile you picked last time for this app (or domain) is highlighted
       next time, so Enter repeats it.
+
+## M7/M8 — .eml reader
+
+- [ ] Settings → "Make Segue default for .eml" (M10) or `open -a Segue file.eml`: the reader shows
+      headers, the plain text, Reply / Reply All / Forward, Show HTML, Reveal attachments.
+- [ ] Show HTML renders with no remote images (block a tracking pixel: nothing loads, no network).
+- [ ] The ★ tile is the account that received the message; Enter picks it.
+- [ ] Click "Reply with Gmail — work" on a message that account received → Chrome opens the real
+      Gmail thread (search by Message-ID), not a new compose. Reply there keeps the thread.
+- [ ] Click "Reply with Mail" → Mail opens a draft with the original quoted and Re: subject.
+- [ ] Forward → "Reveal attachments" opens a Finder folder with the files to drag in.
+- [ ] A long message → the URL carries a short body and the quoted text is on the clipboard with a toast (M11).
+- [ ] Drag an `.eml` out of Mail onto Segue's Dock icon → the reader opens.
+- [ ] ⌘+ / ⌘− zoom the text; R / A / F switch the mode; Esc closes without sending anything.
+- [ ] `eml.autoRoute: true` + the replyFromReceiver rule → the reader is skipped.
