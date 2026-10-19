@@ -157,12 +157,15 @@ public struct GeneralSettings: Codable, Equatable, Sendable {
     public var stayRunning: Bool = false
     /// Treat `+` in mailto values as a space (some senders do that).
     public var plusAsSpace: Bool = false
+    /// "Pause rules": every link shows the chooser until this is turned off.
+    public var rulesPaused: Bool = false
     public init() {}
 
-    enum CodingKeys: String, CodingKey { case stayRunning, plusAsSpace }
+    enum CodingKeys: String, CodingKey { case stayRunning, plusAsSpace, rulesPaused }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         stayRunning = try c.decodeIfPresent(Bool.self, forKey: .stayRunning) ?? false
         plusAsSpace = try c.decodeIfPresent(Bool.self, forKey: .plusAsSpace) ?? false
+        rulesPaused = try c.decodeIfPresent(Bool.self, forKey: .rulesPaused) ?? false
     }
 }

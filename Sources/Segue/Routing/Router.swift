@@ -30,6 +30,9 @@ final class Router {
         if context.forceChooser {
             return .chooser(reason: "Modifier held.")
         }
+        if config.general.rulesPaused {
+            return .chooser(reason: "Rules are paused.")
+        }
         if let match = RuleEngine.evaluate(context, config: config), let d = config.destination(id: match.destinationID) {
             return .launch(d, explanation: match.explanation)
         }

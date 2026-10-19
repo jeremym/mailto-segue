@@ -25,6 +25,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         m.onSendAgain = { [weak self] item, destination in self?.sendAgain(item, to: destination) }
         m.onOpenEml = { [weak self] url in self?.pendingWork += 1; self?.openMessage(at: url) }
         m.onTestDestination = { [weak self] d in self?.test(d) }
+        m.onStayRunningChanged = { [weak self] on in
+            guard let self else { return }
+            self.config.general.stayRunning = on
+            self.applyResidentMode(on)
+        }
         return m
     }()
     private lazy var historyStore = HistoryStore(supportDirectory: options.supportDirectory)
@@ -45,7 +50,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.write("didFinishLaunching pendingWork=\(pendingWork)")
-        if pendingWork == 0 {
+        if config.general.stayRunning {
+            applyResidentMode(true)
+        }
+        if pendingWork == 0, !config.general.stayRunning || !launchedAtLogin {
             showMainWindow()
         }
         // Off the hot path: make sure LaunchServices knows where we live.
@@ -71,8 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let context = RouteContext(kind: .mailto, request: request, source: source, forceChooser: forced)
             route(context)
         } else if urlString.lowercased().hasPrefix("x-segue:") {
-            Log.write(String(format: "x-segue:// commands arrive in M11 (%@)", urlString))
-            finishWork()
+            handleCommand(urlString, source: source)
         } else {
             Log.write(String(format: "ignoring URL %@", urlString))
             finishWork()
@@ -310,12 +317,113 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return }
             switch result {
             case .success(let plan):
-                if let note = plan.note { Log.write(note) }
                 self.record(context, destination: destination, explanation: explanation, emlPath: emlPath, attachments: attachments)
+                if let note = plan.note, self.options.dryRunFile == nil {
+                    Log.write(note)
+                    Toast.show(note) { self.finishWork() }
+                    return
+                }
             case .failure(let error):
                 Log.write(String(format: "could not open %@: %@", destination.name, error.localizedDescription))
+                if self.options.dryRunFile == nil {
+                    Toast.show("Couldn't open \(destination.name): \(error.localizedDescription)", seconds: 2.5) { self.finishWork() }
+                    return
+                }
             }
             self.finishWork()
+        }
+    }
+
+    // MARK: - x-segue:// commands (the CLI, Shortcuts, scripts)
+
+    private func handleCommand(_ urlString: String, source: SourceApp?) {
+        guard let components = URLComponents(string: urlString), let command = components.host?.lowercased() else {
+            Log.write("bad command \(urlString)")
+            finishWork()
+            return
+        }
+        let q = Dictionary((components.queryItems ?? []).map { ($0.name, $0.value ?? "") }, uniquingKeysWith: { a, _ in a })
+        Log.write("command \(command) \(q)")
+        switch command {
+        case "route":
+            guard let link = q["url"], MailtoParser.isMailto(link) else { finishWork(); return }
+            ensureConfigExists()
+            let request = MailtoParser.parse(link, options: .init(plusAsSpace: config.general.plusAsSpace))
+            route(RouteContext(kind: .cli, request: request, source: source, forceChooser: q["chooser"] == "1"))
+        case "open":
+            guard let path = q["path"] else { finishWork(); return }
+            openMessage(at: URL(fileURLWithPath: path))
+        case "settings", "history", "destinations", "rules", "about":
+            showMainWindow(section: MainSection(rawValue: command) ?? .history)
+            finishWork()
+        case "doctor":
+            let lines = Doctor.run(config: config, store: configStore, supportDirectory: options.supportDirectory)
+            let text = lines.map { ($0.ok ? "ok" : "fail") + "\t" + $0.text }.joined(separator: "\n") + "\n"
+            if let out = q["out"] { try? text.write(toFile: out, atomically: true, encoding: .utf8) } else { Log.write(text) }
+            finishWork()
+        case "make-default":
+            DefaultHandler.setMailtoHandler(to: Bundle.main.bundleURL) { [weak self] ok in
+                Toast.show(ok ? "Segue is now the default email app." : "Not changed.") { self?.finishWork() }
+            }
+        case "restore-default":
+            DefaultHandler.setMailtoHandler(to: DefaultHandler.mailAppURL) { [weak self] ok in
+                Toast.show(ok ? "Mail is the default email app again." : "Not changed.") { self?.finishWork() }
+            }
+        case "pause-rules":
+            config.general.rulesPaused = q["on"] == "1"
+            try? configStore.save(config)
+            if mainWindow != nil { model.config = config }
+            Toast.show(config.general.rulesPaused ? "Rules paused." : "Rules resumed.") { [weak self] in self?.finishWork() }
+        case "test":
+            guard let id = q["destination"], let d = config.destination(id: id) else {
+                Toast.show("No destination with that id.", seconds: 2) { [weak self] in self?.finishWork() }
+                return
+            }
+            pendingWork -= 1   // test() counts its own work
+            test(d)
+        default:
+            Log.write("unknown command \(command)")
+            finishWork()
+        }
+    }
+
+    // MARK: - Resident mode (menu bar + login item)
+
+    private var statusBar: StatusBarController?
+    private var launchedAtLogin: Bool {
+        // SMAppService launches have no document or URL and the Dock hidden; treat
+        // a resident-mode launch with nothing to do as a background start.
+        config.general.stayRunning && pendingWork == 0 && options.snapshotFile == nil && options.section == nil
+    }
+
+    func applyResidentMode(_ on: Bool) {
+        if on {
+            if statusBar == nil { statusBar = StatusBarController(delegate: self) }
+            LoginItem.set(true)
+        } else {
+            statusBar?.remove()
+            statusBar = nil
+            LoginItem.set(false)
+        }
+    }
+
+    var currentConfig: Config { mainWindow != nil ? model.config : config }
+    var configErrorText: String? { configStore.lastError }
+
+    func recentHistory(limit: Int) -> [HistoryItem] {
+        Array(historyStore.items().prefix(limit))
+    }
+
+    func toggleRulesPaused() {
+        config = currentConfig
+        config.general.rulesPaused.toggle()
+        try? configStore.save(config)
+        if mainWindow != nil { model.config = config }
+    }
+
+    func makeDefaultFromMenu() {
+        DefaultHandler.setMailtoHandler(to: Bundle.main.bundleURL) { ok in
+            Toast.show(ok ? "Segue is now the default email app." : "Not changed.")
         }
     }
 

@@ -111,3 +111,17 @@ two-line body intact.
 - [ ] Settings: Make Segue default / Restore Mail (both prompts); .eml default; layout, position,
       text size, modifier; history caps and Clear; Check setup lists every destination's state.
 - [ ] Edit `config.json` by hand while the window is open → nothing breaks; the next launch picks it up.
+
+## M11 — CLI, x-segue://, resident mode, toasts
+
+- [ ] `segue doctor` prints the setup; `segue route "mailto:a@b.com"` routes like a click;
+      `segue open file.eml` opens the reader; `segue settings` opens the window.
+- [ ] `segue make-default` / `segue restore-default` show the macOS prompt and a toast with the
+      verified result.
+- [ ] `segue pause-rules on` → every link shows the chooser; `off` restores rules.
+- [ ] A Copy destination shows a "Copied." toast for about a second, then Segue quits.
+- [ ] Settings → "Stay running" on: a menu-bar envelope appears with Open Segue, recent hand-offs,
+      Pause rules, Quit; Segue appears in System Settings → Login Items; closing the main window
+      no longer quits. Off: the item and the login item go away.
+- [ ] With "Stay running" on, a link still routes (the running instance handles it) and the
+      chooser still takes keys.

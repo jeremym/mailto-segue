@@ -69,6 +69,8 @@ struct SettingsView: View {
 
             Section("General") {
                 Toggle("Stay running in the menu bar (and open at login)", isOn: $model.config.general.stayRunning)
+                    .onChange(of: model.config.general.stayRunning) { _, on in model.onStayRunningChanged?(on) }
+                Toggle("Pause rules (every link shows the chooser)", isOn: $model.config.general.rulesPaused)
                 Text("Off by default: Segue launches when a link arrives and quits when it's done.").font(.callout).foregroundStyle(.secondary)
                 Toggle("Treat + as a space in links (some senders encode spaces that way)", isOn: $model.config.general.plusAsSpace)
             }

@@ -23,6 +23,7 @@ final class AppModel {
     var onSendAgain: ((HistoryItem, Destination?) -> Void)?
     var onOpenEml: ((URL) -> Void)?
     var onTestDestination: ((Destination) -> Void)?
+    var onStayRunningChanged: ((Bool) -> Void)?
 
     @ObservationIgnored private var saveTimer: Timer?
     @ObservationIgnored private(set) var installedBrowsers: [Discovery.InstalledApp] = []
