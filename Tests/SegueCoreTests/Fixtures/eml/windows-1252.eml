@@ -1,0 +1,7 @@
+From: a@example.com
+To: me@work.com
+Subject: cp1252
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+
+Smart “quotes” and €

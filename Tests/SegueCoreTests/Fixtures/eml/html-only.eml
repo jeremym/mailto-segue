@@ -1,0 +1,8 @@
+From: news@lists.acme.com
+To: me@work.com
+Subject: Newsletter
+Content-Type: text/html; charset=utf-8
+
+<html><head><style>p{color:red}</style><script>alert(1)</script></head>
+<body><div>Line one</div><div>Line &quot;two&quot; &#8212; done<br>three</div>
+<img src="https://tracker.example/pixel.gif"></body></html>
