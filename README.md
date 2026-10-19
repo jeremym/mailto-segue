@@ -96,9 +96,11 @@ Builds are **ad-hoc signed** (`codesign -s -`). That's free and automatic, and i
 - macOS 14 Sonoma or later. Universal binary (Apple silicon + Intel).
 - The `mailto:` parser follows RFC 6068. The `.eml` parser follows RFC 5322 and MIME. Both are plain Foundation code with unit tests.
 
-## License
+## License and credits
 
-[MIT](LICENSE)
+- Segue is [MIT](LICENSE).
+- Service logos come from [Simple Icons](https://simpleicons.org) (CC0). The logos are trademarks of their owners and are used only to identify each service. Services without a Simple Icons logo get a generic envelope.
+- Mail-app and browser icons are drawn from the apps installed on your own Mac. Segue doesn't ship them.
 
 ---
 
