@@ -98,3 +98,16 @@ two-line body intact.
 - [ ] `browserHandler` on a Chrome profile with Gmail registered as its mailto handler → Gmail compose
 - [ ] `browserHandler` on a profile with no handler → Chrome bounces it, Segue shows the chooser (no loop)
 - [ ] Record "verified on <date>" per service in the vault's 03-Research table.
+
+## M10 — main window
+
+- [ ] `open -a Segue` (no link) shows the main window on History; closing it quits Segue.
+- [ ] History: search filters; selecting shows "Why it went there"; Send again re-opens the same
+      destination; Send elsewhere… shows the chooser; Make a rule from this adds a rule; Open .eml
+      reopens the reader; Delete removes it.
+- [ ] Destinations: Add each kind; pick a browser and profile from the lists; choose a picture and a
+      colour (the tile preview updates); drag to reorder; Test this destination opens a sample email.
+- [ ] Rules: add, edit conditions, pick a destination, reorder, toggle; "If nothing matches" picker.
+- [ ] Settings: Make Segue default / Restore Mail (both prompts); .eml default; layout, position,
+      text size, modifier; history caps and Clear; Check setup lists every destination's state.
+- [ ] Edit `config.json` by hand while the window is open → nothing breaks; the next launch picks it up.

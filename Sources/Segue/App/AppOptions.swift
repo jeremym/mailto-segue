@@ -9,8 +9,10 @@ struct AppOptions {
     var dryRunFile: URL?
     /// `--startup-marker <file>`: see StartupMarker.
     var startupMarker: URL?
-    /// `--snapshot <file.png>`: render the chooser to a PNG, then quit.
+    /// `--snapshot <file.png>`: render the chooser / reader / main window to a PNG, then quit.
     var snapshotFile: URL?
+    /// `--section history|destinations|rules|settings|about`: which main-window section to open.
+    var section: String?
 
     static func parse(_ args: [String] = CommandLine.arguments) -> AppOptions {
         func value(after flag: String) -> String? {
@@ -23,7 +25,8 @@ struct AppOptions {
             supportDirectory: support,
             dryRunFile: value(after: "--dry-run").map { URL(fileURLWithPath: $0) },
             startupMarker: value(after: "--startup-marker").map { URL(fileURLWithPath: $0) },
-            snapshotFile: value(after: "--snapshot").map { URL(fileURLWithPath: $0) }
+            snapshotFile: value(after: "--snapshot").map { URL(fileURLWithPath: $0) },
+            section: value(after: "--section")
         )
     }
 }

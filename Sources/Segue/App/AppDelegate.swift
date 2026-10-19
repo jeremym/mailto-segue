@@ -15,11 +15,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return l
     }()
 
-    /// Work that arrived during launch, so we don't show the placeholder.
+    /// Work that arrived during launch, so we don't show the main window.
     private var pendingWork = 0
-    private var placeholderWindow: NSWindow?
     private var chooser: ChooserPanel?
     private var readers: [ReaderWindowController] = []
+    private var mainWindow: MainWindowController?
+    private lazy var model: AppModel = {
+        let m = AppModel(store: configStore, config: config, supportDirectory: options.supportDirectory)
+        m.onSendAgain = { [weak self] item, destination in self?.sendAgain(item, to: destination) }
+        m.onOpenEml = { [weak self] url in self?.pendingWork += 1; self?.openMessage(at: url) }
+        m.onTestDestination = { [weak self] d in self?.test(d) }
+        return m
+    }()
+    private lazy var historyStore = HistoryStore(supportDirectory: options.supportDirectory)
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         Timing.mark("willFinishLaunching")
@@ -38,7 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         Log.write("didFinishLaunching pendingWork=\(pendingWork)")
         if pendingWork == 0 {
-            showPlaceholder()
+            showMainWindow()
         }
         // Off the hot path: make sure LaunchServices knows where we live.
         DispatchQueue.global(qos: .utility).async { DefaultHandler.registerSelf() }
@@ -111,7 +119,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let suggestion = RuleEngine.evaluate(preview, config: config)
         if config.eml.autoRoute, let s = suggestion, let d = config.destination(id: s.destinationID) {
             Log.write(String(format: ".eml auto-routed → %@ (%@)", d.name, s.explanation.text))
-            route(message: message, kind: .reply, to: d, original: original, source: source)
+            route(message: message, kind: .reply, to: d, original: original, source: source, emlPath: url.path)
             return
         }
 
@@ -121,7 +129,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             suggestedID: suggestion?.destinationID,
             onChoice: { [weak self] choice in
                 guard let self else { return }
-                self.route(message: message, kind: choice.kind, to: choice.destination, original: original, source: source)
+                self.route(message: message, kind: choice.kind, to: choice.destination, original: original, source: source, emlPath: url.path)
             },
             onClose: { [weak self] in
                 guard let self else { return }
@@ -144,21 +152,76 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// the real thread (threaded reply, attachments intact); everything else
     /// gets a compose request with the original quoted.
     private func route(message: EmailMessage, kind: ReplyBuilder.Kind, to destination: Destination,
-                       original: OriginalMessage, source: SourceApp?) {
+                       original: OriginalMessage, source: SourceApp?, emlPath: String? = nil) {
         if destination.type == .webmail, destination.provider == .gmail, let messageID = message.messageID,
            holds(destination, deliveredTo: original.deliveredTo),
            let url = ComposeRequest.gmailThreadURL(messageID: messageID, account: destination.account ?? WebmailAccount(email: destination.primarySendsAs)) {
             Log.write(String(format: "opening the thread in %@", destination.name))
             launcher.open(url: url, browser: destination.browser, destinationID: destination.id) { [weak self] result in
-                if case .failure(let error) = result { NSLog("Segue: could not open %@: %@", destination.name, error.localizedDescription) }
-                self?.finishWork()
+                guard let self else { return }
+                switch result {
+                case .failure(let error): Log.write(String(format: "could not open %@: %@", destination.name, error.localizedDescription))
+                case .success:
+                    let request = ReplyBuilder.build(kind, from: message, myAddresses: self.config.myAddresses)
+                    let ctx = RouteContext(kind: kind == .forward ? .forward : (kind == .replyAll ? .replyAll : .reply), request: request, source: source, original: original)
+                    self.record(ctx, destination: destination, explanation: Explanation(text: "Opened the thread in \(destination.name)"), emlPath: emlPath, attachments: message.attachments.map(\.filename))
+                }
+                self.finishWork()
             }
             return
         }
         let request = ReplyBuilder.build(kind, from: message, myAddresses: config.myAddresses)
         let contextKind: RouteContext.Kind = kind == .reply ? .reply : (kind == .replyAll ? .replyAll : .forward)
         let context = RouteContext(kind: contextKind, request: request, source: source, original: original)
-        launch(destination, for: context)
+        launch(destination, for: context, emlPath: emlPath, attachments: message.attachments.map(\.filename))
+    }
+
+    // MARK: - Main window and its actions
+
+    func showMainWindow(section: MainSection = .history) {
+        if let w = mainWindow {
+            w.select(section)
+            w.window?.makeKeyAndOrderFront(nil)
+            NSApp.activate()
+            return
+        }
+        let wanted = MainSection(rawValue: options.section ?? "") ?? section
+        mainWindow = MainWindowController.present(model: model, section: wanted) { [weak self] in
+            guard let self else { return }
+            self.mainWindow = nil
+            self.config = self.model.config
+            self.finishWork()
+        }
+        if let file = options.snapshotFile {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                self?.mainWindow?.snapshot(to: file)
+                NSApp.terminate(nil)
+            }
+            return
+        }
+        if let marker = options.startupMarker { StartupMarker.write(to: marker) }
+    }
+
+    /// History → "Send again" (same destination) or "Send elsewhere…" (chooser).
+    private func sendAgain(_ item: HistoryItem, to destination: Destination?) {
+        config = model.config
+        var request = ComposeRequest(to: item.to.compactMap { EmailAddress(parsing: $0) }, cc: item.cc.compactMap { EmailAddress(parsing: $0) },
+                                     bcc: item.bcc.compactMap { EmailAddress(parsing: $0) }, subject: item.subject)
+        request.body = historyStore.body(for: item)
+        let context = RouteContext(kind: item.kind, request: request, source: item.source, forceChooser: destination == nil)
+        pendingWork += 1
+        if let destination { launch(destination, for: context, explanation: Explanation(text: "Sent again from History")) }
+        else { showChooser(for: context) }
+    }
+
+    /// Destinations → "Test this destination": a sample email, for real.
+    private func test(_ destination: Destination) {
+        config = model.config
+        let request = ComposeRequest(to: [EmailAddress(address: "test@example.com")], cc: [EmailAddress(address: "cc@example.com")],
+                                     subject: "Segue test: A & B = C + D #1 ?", body: "Line one\nLine two\n\nIf you can read both lines, the body made it.")
+        let context = RouteContext(kind: .cli, request: request, source: SourceApp(bundleID: Bundle.main.bundleIdentifier ?? "", name: "Segue"))
+        pendingWork += 1
+        launch(destination, for: context, explanation: Explanation(text: "Test from Settings"))
     }
 
     private func holds(_ destination: Destination, deliveredTo: String?) -> Bool {
@@ -175,7 +238,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switch router.decide(context) {
         case .launch(let destination, let explanation):
             Log.write(String(format: "%@ → %@ (%@)", context.request.primaryRecipient, destination.name, explanation.text))
-            launch(destination, for: context)
+            launch(destination, for: context, explanation: explanation)
         case .chooser(let reason):
             Log.write(String(format: "chooser (%@)", reason))
             showChooser(for: context)
@@ -241,16 +304,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.write(String(format: "first run, proposed %d destinations", fresh.destinations.count))
     }
 
-    private func launch(_ destination: Destination, for context: RouteContext) {
+    private func launch(_ destination: Destination, for context: RouteContext, explanation: Explanation = .pickedByUser,
+                        emlPath: String? = nil, attachments: [String] = []) {
         launcher.launch(destination, for: context.request) { [weak self] result in
+            guard let self else { return }
             switch result {
             case .success(let plan):
-                if let note = plan.note { NSLog("Segue: %@", note) }
+                if let note = plan.note { Log.write(note) }
+                self.record(context, destination: destination, explanation: explanation, emlPath: emlPath, attachments: attachments)
             case .failure(let error):
                 Log.write(String(format: "could not open %@: %@", destination.name, error.localizedDescription))
             }
-            self?.finishWork()
+            self.finishWork()
         }
+    }
+
+    private func record(_ context: RouteContext, destination: Destination, explanation: Explanation,
+                        emlPath: String?, attachments: [String]) {
+        guard config.history.keepItems > 0 else { return }
+        let item = HistoryItem(kind: context.kind, source: context.source, request: context.request, destination: destination,
+                               explanation: explanation, emlPath: emlPath, attachments: attachments)
+        historyStore.record(item, body: context.request.body, settings: config.history)
+        if mainWindow != nil { model.refresh() }
     }
 
     /// One unit of work is done. Quit unless a window keeps us alive or the
@@ -261,44 +336,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             StartupMarker.write(to: marker)
             return
         }
-        guard pendingWork == 0, placeholderWindow == nil, chooser == nil, readers.isEmpty, !config.general.stayRunning else { return }
+        guard pendingWork == 0, chooser == nil, readers.isEmpty, mainWindow == nil, !config.general.stayRunning else { return }
         // Give the launched app's activation a moment to land, then go.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             NSApp.terminate(nil)
         }
-    }
-
-    // MARK: - Placeholder window (until M10's main window)
-
-    private func showPlaceholder() {
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 240),
-            styleMask: [.titled, .closable],
-            backing: .buffered,
-            defer: false
-        )
-        window.title = "Segue"
-        window.center()
-        window.isReleasedWhenClosed = false
-
-        let status = DefaultHandler.isSegueDefaultForMailto() ? "Segue is the default email app." : "Segue is not the default email app yet."
-        let label = NSTextField(labelWithString: "Segue \(SegueVersion.string)\n\(status)")
-        label.font = .systemFont(ofSize: 24, weight: .semibold)
-        label.alignment = .center
-        label.maximumNumberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        window.contentView?.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: window.contentView!.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: window.contentView!.centerYAnchor),
-            label.leadingAnchor.constraint(greaterThanOrEqualTo: window.contentView!.leadingAnchor, constant: 20),
-        ])
-
-        placeholderWindow = window
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
-        if let marker = options.startupMarker { StartupMarker.write(to: marker) }
     }
 }
 
