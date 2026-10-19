@@ -6,8 +6,13 @@ Segue is an open-source macOS app (by Overtone Foundry). It becomes the default 
 
 ## Source of truth
 
-- **Plan:** the Obsidian vault (`jeremym-vault`), folder `Mailto Router/`. Start with `00-TOC.md`, then `02-V1-Plan.md`, which has the milestones (M0–M12), architecture, config schema and test plan. Read them before starting a milestone.
-- Record durable decisions in the vault, not only in chat.
+- **Plan:** the Obsidian vault (`jeremym-vault`), folder `Mailto Router/`, on disk at
+  `/Users/jeremym/Documents/obsidian-vaults/jeremym-vault/Mailto Router/`. Read it with the `obsidian` skill/CLI, or directly as plain Markdown.
+  - `00-TOC.md`: status, decisions, what's next.
+  - `02-V1-Plan.md`: the milestones (M0–M12), architecture, config schema, test plan. **Read it before starting a milestone.**
+  - `03-Research.md`: verified facts with sources (webmail URLs, browser profiles, Homebrew, LaunchServices, icons). Check here before researching again.
+- Record durable decisions in the vault (append to `00-TOC.md` or the plan's Decisions section), not only in chat. When a milestone is done, update the status in `00-TOC.md`.
+- Nothing about this project lives in `~/.claude` or `.context/`. Everything is in the vault or in this repo.
 
 ## Git rules (strict)
 
