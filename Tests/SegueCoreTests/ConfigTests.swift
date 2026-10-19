@@ -104,6 +104,17 @@ final class ConfigTests: XCTestCase {
         XCTAssertTrue(issues.contains { $0.contains("fallback points at unknown destination 'ghost'") })
     }
 
+    func testMinimalConfigDecodesWithDefaults() throws {
+        let data = Data(#"{ "destinations": [ { "id": "copy", "name": "Copy", "type": "clipboard" } ] }"#.utf8)
+        let config = try ConfigStore.decode(data)
+        XCTAssertEqual(config.version, 1)
+        XCTAssertEqual(config.fallback, .chooser)
+        XCTAssertEqual(config.destinations.count, 1)
+        XCTAssertEqual(config.chooser, ChooserSettings())
+        XCTAssertEqual(config.general, GeneralSettings())
+        XCTAssertEqual(try ConfigStore.decode(Data("{}".utf8)), Config())
+    }
+
     func testRuleDefaultsWhenKeysAreMissing() throws {
         let data = Data(#"{"name":"x","then":"d"}"#.utf8)
         let rule = try JSONDecoder().decode(Rule.self, from: data)

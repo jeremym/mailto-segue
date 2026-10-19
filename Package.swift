@@ -16,6 +16,6 @@ let package = Package(
         .target(name: "SegueCore"),
         .executableTarget(name: "Segue", dependencies: ["SegueCore"]),
         .executableTarget(name: "segue-cli", dependencies: ["SegueCore"]),
-        .testTarget(name: "SegueCoreTests", dependencies: ["SegueCore"]),
+        .testTarget(name: "SegueCoreTests", dependencies: ["SegueCore"], exclude: ["Fixtures"]),
     ]
 )

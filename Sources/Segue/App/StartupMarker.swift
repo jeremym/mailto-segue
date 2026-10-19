@@ -10,15 +10,12 @@ import Darwin
 /// LaunchServices part (open → exec) and ours (exec → ready).
 enum StartupMarker {
     @MainActor
-    static func writeIfRequested() {
-        let args = CommandLine.arguments
-        guard let i = args.firstIndex(of: "--startup-marker"), i + 1 < args.count else { return }
-        let path = args[i + 1]
+    static func write(to file: URL, thenQuit: Bool = true) {
         DispatchQueue.main.async {
             let readyMs = Int(Date().timeIntervalSince1970 * 1000)
             let execMs = processStartEpochMs() ?? readyMs
-            try? "\(readyMs) \(execMs)\n".write(toFile: path, atomically: true, encoding: .utf8)
-            NSApp.terminate(nil)
+            try? "\(readyMs) \(execMs)\n".write(to: file, atomically: true, encoding: .utf8)
+            if thenQuit { NSApp.terminate(nil) }
         }
     }
 

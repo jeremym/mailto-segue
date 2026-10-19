@@ -18,6 +18,21 @@ public struct Config: Codable, Equatable, Sendable {
 
     public init() {}
 
+    enum CodingKeys: String, CodingKey { case version, fallback, destinations, rules, chooser, eml, history, general }
+
+    /// Every key is optional on disk, so a hand-written three-line config works.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        version = try c.decodeIfPresent(Int.self, forKey: .version) ?? Config.currentVersion
+        fallback = try c.decodeIfPresent(Fallback.self, forKey: .fallback) ?? .chooser
+        destinations = try c.decodeIfPresent([Destination].self, forKey: .destinations) ?? []
+        rules = try c.decodeIfPresent([Rule].self, forKey: .rules) ?? []
+        chooser = try c.decodeIfPresent(ChooserSettings.self, forKey: .chooser) ?? ChooserSettings()
+        eml = try c.decodeIfPresent(EmlSettings.self, forKey: .eml) ?? EmlSettings()
+        history = try c.decodeIfPresent(HistorySettings.self, forKey: .history) ?? HistorySettings()
+        general = try c.decodeIfPresent(GeneralSettings.self, forKey: .general) ?? GeneralSettings()
+    }
+
     public enum Fallback: Equatable, Sendable, Codable {
         case chooser
         case destination(String)
@@ -96,12 +111,30 @@ public struct ChooserSettings: Codable, Equatable, Sendable {
     public var learnDefault: Bool = true
 
     public init() {}
+
+    enum CodingKeys: String, CodingKey { case layout, autoLayout, textScale, forceModifier, position, learnDefault }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        layout = try c.decodeIfPresent(Layout.self, forKey: .layout) ?? .largeTiles
+        autoLayout = try c.decodeIfPresent(Bool.self, forKey: .autoLayout) ?? false
+        textScale = try c.decodeIfPresent(Double.self, forKey: .textScale) ?? 1.4
+        forceModifier = try c.decodeIfPresent(Modifier.self, forKey: .forceModifier) ?? .option
+        position = try c.decodeIfPresent(Position.self, forKey: .position) ?? .center
+        learnDefault = try c.decodeIfPresent(Bool.self, forKey: .learnDefault) ?? true
+    }
 }
 
 public struct EmlSettings: Codable, Equatable, Sendable {
     /// When true, a matching rule routes an opened .eml without a click.
     public var autoRoute: Bool = false
     public init() {}
+
+    enum CodingKeys: String, CodingKey { case autoRoute }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        autoRoute = try c.decodeIfPresent(Bool.self, forKey: .autoRoute) ?? false
+    }
 }
 
 public struct HistorySettings: Codable, Equatable, Sendable {
@@ -109,6 +142,13 @@ public struct HistorySettings: Codable, Equatable, Sendable {
     public var keepItems: Int = 500
     public var maxMB: Int = 50
     public init() {}
+
+    enum CodingKeys: String, CodingKey { case keepItems, maxMB }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        keepItems = try c.decodeIfPresent(Int.self, forKey: .keepItems) ?? 500
+        maxMB = try c.decodeIfPresent(Int.self, forKey: .maxMB) ?? 50
+    }
 }
 
 public struct GeneralSettings: Codable, Equatable, Sendable {
@@ -118,4 +158,11 @@ public struct GeneralSettings: Codable, Equatable, Sendable {
     /// Treat `+` in mailto values as a space (some senders do that).
     public var plusAsSpace: Bool = false
     public init() {}
+
+    enum CodingKeys: String, CodingKey { case stayRunning, plusAsSpace }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        stayRunning = try c.decodeIfPresent(Bool.self, forKey: .stayRunning) ?? false
+        plusAsSpace = try c.decodeIfPresent(Bool.self, forKey: .plusAsSpace) ?? false
+    }
 }
