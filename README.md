@@ -8,9 +8,15 @@ Segue is a small, open-source macOS app that becomes your default email app and 
 - a desktop mail app (Mail, Mimestream, Outlook, Spark, Thunderbird…)
 - or just your clipboard
 
-You choose with a one-key **picker**, or let **rules** decide for you, e.g. "links clicked in Slack → work Gmail" or "anything to `acme.com` → work Gmail".
+When you click an email link, a **chooser** pops up with a big button for each of your destinations: "Gmail — work", "Yahoo", "Mail". Each button has its own picture. Click one (or press its number) and it's gone. You can also let **rules** decide for you, e.g. "links clicked in Slack → work Gmail" or "anything to `acme.com` → work Gmail".
 
-Double-click an **`.eml` file** and Segue opens it in a clean reader. Hit **Reply**, and your reply opens in the account that received the message, with the original quoted.
+Double-click an **`.eml` file** and Segue shows the message with the same big buttons underneath: **Reply with Gmail — work**, **Reply with Yahoo**… Click one, the window closes, and the reply opens in that account with the original quoted. Segue marks the account that received the email with a ★.
+
+Got lots of addresses? Switch the chooser from **Large tiles** to **Small tiles** or a **Compact list**.
+
+### What Segue is *not*
+
+Segue is a **marshaller**, not a mail client. It never composes, edits or sends email, and it never asks for your mail password. It decides *where* a draft opens. You still type your message in Gmail, Yahoo, Mail.app, or wherever it lands.
 
 > **Status:** planning is done and the code is not written yet. v1.0 is coming. Nothing below works until then.
 
@@ -34,15 +40,16 @@ Other ways in:
 ## Quick start (planned)
 
 1. Open Segue and click **Make Segue default**. macOS will ask you to confirm.
-2. Add a destination, e.g. **Gmail — account 1 — Arc**.
-3. Click any `mailto:` link. Pick with a number key, or press **Esc** to cancel.
-4. Want to skip the picker next time? Toggle **Always for this app** or **Always for this domain** in the picker.
+2. Add a destination, e.g. **Gmail — account 1 — Arc**. Give it a picture and a color if you like.
+3. Click any `mailto:` link. Click a button or press its number. **Esc** cancels.
+4. Want to skip the chooser next time? Toggle **Always for this app** or **Always for this domain** in the chooser.
 
 ## Privacy
 
 - No telemetry, no accounts, no network calls. Segue only opens the URLs you asked for.
 - HTML email is shown with every remote image and script blocked, so tracking pixels never fire.
 - Settings and history stay on your Mac in `~/Library/Application Support/Segue/`. The settings file is plain JSON you can edit by hand or keep in your dotfiles.
+- History keeps full message text (compressed, never attachments). It's capped at 500 items or 50 MB, whichever comes first, which is usually under 10 MB in practice. You can clear it with one click or turn it off.
 - No Accessibility, Automation or Full Disk Access permissions needed.
 
 ---

@@ -2,6 +2,8 @@
 
 Segue is an open-source macOS app (by Overtone Foundry). It becomes the default email app and routes `mailto:` links and `.eml` replies to the right webmail account, browser profile, or mail app.
 
+**Segue is a marshaller, not a mail client.** It never composes, edits or sends mail and never handles mail credentials. Don't add a text editor or compose box. Every flow is: show the chooser (big image buttons; layouts Large tiles / Small tiles / Compact list) → one click → the draft opens in the destination → Segue's window closes immediately.
+
 ## Source of truth
 
 - **Plan:** the Obsidian vault (`jeremym-vault`), folder `Mailto Router/`. Start with `00-TOC.md`, then `02-V1-Plan.md`, which has the milestones (M0–M12), architecture, config schema and test plan. Read them before starting a milestone.
