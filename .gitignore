@@ -7,3 +7,5 @@ xcuserdata/
 DerivedData/
 *.zip
 .context/
+dist/
+*.p12
