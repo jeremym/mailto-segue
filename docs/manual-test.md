@@ -50,3 +50,13 @@ your Mac. Tick them when you run a milestone build (`make install`, then
 - [ ] On a clean Mac (or after `brew uninstall --cask segue`): `brew install --cask jeremym/tap/segue`
       → `open -a Segue` launches with no Gatekeeper prompt → Make Segue default → links route.
 - [ ] `brew upgrade` later keeps the default and shows no prompt.
+
+## M6 — rules
+
+- [ ] A rule "sourceApp is com.tinyspeck.slackmacgap → Gmail — work": a link clicked in Slack
+      skips the chooser and lands in work Gmail; the same link from Safari shows the chooser.
+- [ ] Hold ⌥ while clicking a link that a rule covers → the chooser shows anyway.
+- [ ] In the chooser, press ⇧A then pick a tile → `config.json` gains an "Always for <app>" rule and
+      the next link from that app skips the chooser. ⇧D does the same for the recipient's domain.
+- [ ] With `learnDefault` on, the tile you picked last time for this app (or domain) is highlighted
+      next time, so Enter repeats it.

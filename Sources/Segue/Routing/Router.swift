@@ -6,7 +6,7 @@ import SegueCore
 @MainActor
 final class Router {
     enum Decision: Equatable {
-        case launch(Destination, reason: String)
+        case launch(Destination, explanation: Explanation)
         case chooser(reason: String)
     }
 
@@ -21,7 +21,7 @@ final class Router {
     func decide(_ context: RouteContext) -> Decision {
         let active = config.activeDestinations
         if active.isEmpty {
-            return .launch(Router.mailAppFallback, reason: "No destinations are set up, so Mail.app gets it.")
+            return .launch(Router.mailAppFallback, explanation: Explanation(text: "No destinations are set up, so Mail.app gets it"))
         }
         if let bounce = LoopGuard(directory: supportDirectory)
             .bounce(for: context.request.mailtoString, sourceBundleID: context.source?.bundleID) {
@@ -30,15 +30,18 @@ final class Router {
         if context.forceChooser {
             return .chooser(reason: "Modifier held.")
         }
+        if let match = RuleEngine.evaluate(context, config: config), let d = config.destination(id: match.destinationID) {
+            return .launch(d, explanation: match.explanation)
+        }
         switch config.fallback {
         case .destination(let id):
             if let d = config.destination(id: id) {
-                return .launch(d, reason: "Fallback destination.")
+                return .launch(d, explanation: .fallback)
             }
             return .chooser(reason: "Fallback destination '\(id)' is missing.")
         case .chooser:
             if active.count == 1 {
-                return .launch(active[0], reason: "The only destination.")
+                return .launch(active[0], explanation: .onlyDestination)
             }
             return .chooser(reason: "No rule matched.")
         }

@@ -155,6 +155,10 @@ final class ChooserPanel: NSPanel {
             super.keyDown(with: event)
             return
         }
+        if flags.contains(.shift), ["a", "d", "s"].contains(chars.lowercased()) {
+            chooserView.toggleChip(key: chars)
+            return
+        }
         if let d = chooserView.destination(forKey: chars) {
             finish(with: d)
         } else if chars == "x" && chooserView.filter.isEmpty {
@@ -196,7 +200,9 @@ final class ChooserPanel: NSPanel {
         guard !finished else { return }
         finished = true
         orderOut(nil)
-        let result = ChooserResult(destination: destination, layoutChangedTo: layoutChange)
+        let result = ChooserResult(destination: destination, rememberApp: chooserView.rememberApp,
+                                   rememberDomain: chooserView.rememberDomain, rememberSender: chooserView.rememberSender,
+                                   layoutChangedTo: layoutChange)
         completion?(result)
         completion = nil
     }

@@ -80,8 +80,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func route(_ context: RouteContext) {
         let router = Router(config: config, supportDirectory: options.supportDirectory)
         switch router.decide(context) {
-        case .launch(let destination, let reason):
-            NSLog("Segue: %@ → %@ (%@)", context.request.primaryRecipient, destination.name, reason)
+        case .launch(let destination, let explanation):
+            NSLog("Segue: %@ → %@ (%@)", context.request.primaryRecipient, destination.name, explanation.text)
             launch(destination, for: context)
         case .chooser(let reason):
             NSLog("Segue: chooser (%@)", reason)
@@ -92,20 +92,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showChooser(for context: RouteContext) {
         Timing.mark("routed")
         let destinations = config.activeDestinations
+        let learned = LearnedChoices(directory: options.supportDirectory)
+        let highlight = config.chooser.learnDefault
+            ? learned.suggestion(for: context, validIDs: Set(destinations.map(\.id))) : nil
         chooser = ChooserPanel.present(context: context, destinations: destinations, settings: config.chooser,
-                                       supportDirectory: options.supportDirectory) { [weak self] result in
+                                       supportDirectory: options.supportDirectory, highlightID: highlight) { [weak self] result in
             guard let self else { return }
             self.chooser = nil
+            var configChanged = false
             if let layout = result?.layoutChangedTo {
                 self.config.chooser.layout = layout
-                try? self.configStore.save(self.config)
+                configChanged = true
             }
             guard let result else {
+                if configChanged { try? self.configStore.save(self.config) }
                 // Cancelled: hand focus back to where the link came from.
                 NSApp.hide(nil)
                 self.finishWork()
                 return
             }
+            if self.config.chooser.learnDefault {
+                learned.record(context, destinationID: result.destination.id)
+            }
+            if let rule = Rule.remembered(context: context, destination: result.destination,
+                                          app: result.rememberApp, domain: result.rememberDomain, sender: result.rememberSender) {
+                self.config.rules.append(rule)
+                configChanged = true
+                NSLog("Segue: new rule “%@”", rule.name)
+            }
+            if configChanged { try? self.configStore.save(self.config) }
             self.launch(result.destination, for: context)
         }
         Timing.mark("chooserShown")

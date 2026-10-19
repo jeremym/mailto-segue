@@ -30,6 +30,10 @@ final class ChooserView: NSView {
     private let filterLabel = NSTextField(labelWithString: "")
     private let footerLabel = NSTextField(labelWithString: "")
     private let tilesContainer = FlippedView()
+    private var chips: [ChipView] = []
+    private(set) var rememberApp = false
+    private(set) var rememberDomain = false
+    private(set) var rememberSender = false
 
     var onPick: ((Destination) -> Void)?
 
@@ -66,7 +70,40 @@ final class ChooserView: NSView {
         footerLabel.alignment = .center
 
         for v in [titleLabel, subtitleLabel, sourceChip, filterLabel, tilesContainer, footerLabel] { addSubview(v) }
+        buildChips()
         rebuildTiles()
+    }
+
+    // MARK: - Remember chips (⇧A app · ⇧D domain · ⇧S sender)
+
+    private func buildChips() {
+        var specs: [(String, String)] = []
+        if let s = context.source { specs.append(("⇧A", "Always for \(s.name)")) }
+        if let d = context.request.to.first?.domain, !d.isEmpty { specs.append(("⇧D", "Always for \(d)")) }
+        if let d = context.original?.from?.domain, !d.isEmpty { specs.append(("⇧S", "Always from \(d)")) }
+        chips = specs.map { key, text in
+            let chip = ChipView(key: key, text: text, scale: scale)
+            chip.onToggle = { [weak self] in self?.toggleChip(key: key) }
+            addSubview(chip)
+            return chip
+        }
+    }
+
+    func toggleChip(key: String) {
+        switch key.uppercased() {
+        case "⇧A", "A": rememberApp.toggle()
+        case "⇧D", "D": rememberDomain.toggle()
+        case "⇧S", "S": rememberSender.toggle()
+        default: return
+        }
+        for chip in chips {
+            switch chip.key {
+            case "⇧A": chip.isOn = rememberApp
+            case "⇧D": chip.isOn = rememberDomain
+            case "⇧S": chip.isOn = rememberSender
+            default: break
+            }
+        }
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -175,6 +212,8 @@ final class ChooserView: NSView {
 
     private var filterHeight: CGFloat { filter.isEmpty ? 0 : filterLabel.font!.pointSize * 1.8 }
 
+    private var chipsHeight: CGFloat { chips.isEmpty ? 0 : 11 * CGFloat(scale) * 1.4 + 12 + 8 }
+
     private var tilesSize: NSSize {
         let m = metrics
         let count = max(1, tiles.count)
@@ -189,7 +228,7 @@ final class ChooserView: NSView {
         let t = tilesSize
         let footer = footerLabel.font!.pointSize * 1.6
         return NSSize(width: t.width + 2 * pad,
-                      height: pad + headerHeight + 10 + filterHeight + t.height + 12 + footer + pad - 6)
+                      height: pad + headerHeight + 10 + filterHeight + t.height + 12 + chipsHeight + footer + pad - 6)
     }
 
     override func layout() {
@@ -220,6 +259,16 @@ final class ChooserView: NSView {
                                 width: m.tileSize.width, height: m.tileSize.height)
         }
         y += t.height + 12
+        if !chips.isEmpty {
+            var x = pad
+            let h = chipsHeight - 8
+            for chip in chips {
+                let cw = chip.preferredWidth
+                chip.frame = NSRect(x: x, y: y, width: cw, height: h)
+                x += cw + 8
+            }
+            y += chipsHeight
+        }
         footerLabel.frame = NSRect(x: pad, y: y, width: w, height: footerLabel.font!.pointSize * 1.6)
     }
 
@@ -249,4 +298,53 @@ extension RouteContext.Kind {
 /// A container whose origin is top-left, like the chooser view itself.
 final class FlippedView: NSView {
     override var isFlipped: Bool { true }
+}
+
+/// A toggle pill: "⇧A  Always for Slack". Click or press the key.
+@MainActor
+final class ChipView: NSView {
+    let key: String
+    private let label = NSTextField(labelWithString: "")
+    var onToggle: (() -> Void)?
+    var isOn = false { didSet { needsDisplay = true; label.textColor = isOn ? .white : .secondaryLabelColor } }
+
+    init(key: String, text: String, scale: Double) {
+        self.key = key
+        super.init(frame: .zero)
+        label.stringValue = "\(key)  \(text)"
+        label.font = Design.font(11, weight: .medium, scale: scale)
+        label.textColor = .secondaryLabelColor
+        label.lineBreakMode = .byTruncatingTail
+        addSubview(label)
+        setAccessibilityRole(.checkBox)
+        setAccessibilityLabel(text)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    var preferredWidth: CGFloat { min(label.cell!.cellSize.width + 24, 260) }
+
+    override func layout() {
+        super.layout()
+        label.frame = bounds.insetBy(dx: 12, dy: 0)
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let path = NSBezierPath(roundedRect: bounds, xRadius: bounds.height / 2, yRadius: bounds.height / 2)
+        if isOn {
+            NSColor.controlAccentColor.setFill()
+            path.fill()
+        } else {
+            NSColor.labelColor.withAlphaComponent(Design.increaseContrast ? 0.14 : 0.07).setFill()
+            path.fill()
+            if Design.increaseContrast {
+                NSColor.labelColor.withAlphaComponent(0.5).setStroke()
+                path.stroke()
+            }
+        }
+    }
+
+    override func mouseDown(with event: NSEvent) { onToggle?() }
+    override func accessibilityValue() -> Any? { isOn }
+    override func accessibilityPerformPress() -> Bool { onToggle?(); return true }
 }
