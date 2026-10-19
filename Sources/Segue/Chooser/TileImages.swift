@@ -26,9 +26,16 @@ enum TileImages {
         case .clipboard:
             return symbol("doc.on.clipboard.fill", size: size, color: .systemGray)
         case .webmail:
-            let color = Design.color(hex: destination.color) ?? Design.color(hex: destination.provider?.brandColorHex) ?? .systemBlue
-            let letter = String((destination.provider?.displayName ?? destination.name).prefix(1)).uppercased()
-            var base = letterCircle(letter, color: color, size: size)
+            var base: NSImage
+            if let provider = destination.provider, let mark = ServiceIcons.marks[provider.rawValue] {
+                // Simple Icons mark (CC0), white on the brand colour (or the tile's own colour).
+                let hex = destination.color.map { $0.replacingOccurrences(of: "#", with: "") } ?? mark.hex
+                base = SVGPathRenderer.image(pathData: mark.path, hex: hex, size: size)
+            } else {
+                let color = Design.color(hex: destination.color) ?? Design.color(hex: destination.provider?.brandColorHex) ?? .systemBlue
+                let letter = String((destination.provider?.displayName ?? destination.name).prefix(1)).uppercased()
+                base = letterCircle(letter, color: color, size: size)
+            }
             if let badge = browserBadge(destination.browser, size: size) {
                 base = composite(base, badge: badge, size: size)
             }

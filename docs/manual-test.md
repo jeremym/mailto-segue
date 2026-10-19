@@ -75,3 +75,26 @@ your Mac. Tick them when you run a milestone build (`make install`, then
 - [ ] Drag an `.eml` out of Mail onto Segue's Dock icon → the reader opens.
 - [ ] ⌘+ / ⌘− zoom the text; R / A / F switch the mode; Esc closes without sending anything.
 - [ ] `eml.autoRoute: true` + the replyFromReceiver rule → the reader is skipped.
+
+## M9 — webmail matrix and browsers (real browsers, you)
+
+Use `scripts/route-test.sh` to see the exact URL first, then click a real link with the same
+destination. For each service: to + cc + bcc filled, subject `A & B = C + D #1 ?` intact, a
+two-line body intact.
+
+- [ ] Gmail by `account.email` (`authuser=`) in Chrome profile "Your Chrome"
+- [ ] Gmail by `account.index` (`u/1`) when two accounts are signed in
+- [ ] Gmail `windowMode: app` → chromeless compose popup
+- [ ] Outlook.com `outlook.live.com/mail/0/deeplink/compose`
+- [ ] Microsoft 365 `outlook.office.com/mail/deeplink/compose` (fields may drop after the session expires)
+- [ ] Yahoo `compose.mail.yahoo.com`
+- [ ] Proton `mail.proton.me/inbox#mailto=` and `u/1`
+- [ ] Fastmail `www.fastmail.com/action/compose/?mailto=`
+- [ ] Zoho (low confidence; fall back to a template)
+- [ ] Brave with `--profile-directory`
+- [ ] Firefox `-P default-release` with Firefox already running in that profile
+- [ ] Firefox container `Work` (needs the "Open external links in a container" extension)
+- [ ] Safari (plain open) · Arc (opens in the current space)
+- [ ] `browserHandler` on a Chrome profile with Gmail registered as its mailto handler → Gmail compose
+- [ ] `browserHandler` on a profile with no handler → Chrome bounces it, Segue shows the chooser (no loop)
+- [ ] Record "verified on <date>" per service in the vault's 03-Research table.
