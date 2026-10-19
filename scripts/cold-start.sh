@@ -12,15 +12,31 @@ cd "$(dirname "$0")/.."
 
 APP="build/Segue.app"
 RUNS=5
+MODE="window"
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --app) APP="$2"; shift 2 ;;
         --runs) RUNS="$2"; shift 2 ;;
+        --chooser) MODE="chooser"; shift ;;   # launch with a mailto: and 3 destinations → measure to chooser
+        --window) MODE="window"; shift ;;
         *) echo "error: unknown argument '$1'" >&2; exit 2 ;;
     esac
 done
 [[ -d "$APP" ]] || { echo "error: $APP not found; run make bundle first" >&2; exit 1; }
 APP="$(cd "$(dirname "$APP")" && pwd)/$(basename "$APP")"   # open(1) needs an absolute path
+
+SUPPORT="$(mktemp -d -t segue-coldstart)"
+if [[ "$MODE" == "chooser" ]]; then
+    cat > "$SUPPORT/config.json" <<'JSON'
+{ "destinations": [
+  { "id": "gmail", "name": "Gmail — personal", "key": "1", "type": "webmail", "provider": "gmail",
+    "account": { "email": "me@example.com" }, "browser": { "bundleID": "com.google.Chrome", "profile": "Default" }, "sendsAs": ["me@example.com"] },
+  { "id": "mail", "name": "Mail", "key": "2", "type": "app", "bundleID": "com.apple.mail" },
+  { "id": "copy", "name": "Copy address", "key": "3", "type": "clipboard", "copy": "addresses" }
+] }
+JSON
+fi
+echo "mode: $MODE"
 
 now_ms() { python3 -c 'import time; print(int(time.time()*1000))'; }
 
@@ -30,7 +46,12 @@ for ((i = 1; i <= RUNS; i++)); do
     marker="$(mktemp -t segue-startup)"
     rm -f "$marker"
     start="$(now_ms)"
-    open -n "$APP" --args --startup-marker "$marker"
+    if [[ "$MODE" == "chooser" ]]; then
+        # --dry-run guarantees nothing opens even if routing falls through.
+        open -n -a "$APP" "mailto:pat@example.com?subject=Cold%20start" --args --startup-marker "$marker" --support-dir "$SUPPORT" --dry-run "$SUPPORT/plan.json"
+    else
+        open -n "$APP" --args --startup-marker "$marker" --support-dir "$SUPPORT" --dry-run "$SUPPORT/plan.json"
+    fi
     for ((t = 0; t < 500; t++)); do
         [[ -s "$marker" ]] && break
         sleep 0.01
@@ -39,13 +60,13 @@ for ((i = 1; i <= RUNS; i++)); do
         echo "run $i: timed out (no marker written)" >&2
         continue
     fi
-    read -r ready exec_at < "$marker"
+    read -r ready exec_at phases < "$marker"
     rm -f "$marker"
     total=$((ready - start))
     mine=$((ready - exec_at))
     totals+=("$total")
     ours+=("$mine")
-    printf 'run %d: %4d ms open→window   = %3d ms LaunchServices + %3d ms Segue\n' "$i" "$total" "$((exec_at - start))" "$mine"
+    printf 'run %d: %4d ms open→window   = %3d ms LaunchServices + %3d ms Segue   [%s]\n' "$i" "$total" "$((exec_at - start))" "$mine" "${phases:-}"
     sleep 0.3
 done
 

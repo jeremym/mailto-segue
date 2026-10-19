@@ -18,8 +18,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Work that arrived during launch, so we don't show the placeholder.
     private var pendingWork = 0
     private var placeholderWindow: NSWindow?
+    private var chooser: ChooserPanel?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        Timing.mark("willFinishLaunching")
         // Register before the launch events arrive. The system delivers a
         // kAEGetURL for a mailto: that caused a cold launch right after this.
         NSAppleEventManager.shared().setEventHandler(
@@ -45,12 +47,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Incoming events
 
     @objc private func handleGetURL(_ event: NSAppleEventDescriptor, withReply reply: NSAppleEventDescriptor) {
+        Timing.mark("event")
         pendingWork += 1
         let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue ?? ""
         let source = SourceAppResolver.resolve(event: event)
         let forced = NSEvent.modifierFlags.contains(config.chooser.forceModifier.eventFlag)
 
         if MailtoParser.isMailto(urlString) {
+            ensureConfigExists()
             let request = MailtoParser.parse(urlString, options: .init(plusAsSpace: config.general.plusAsSpace))
             let context = RouteContext(kind: .mailto, request: request, source: source, forceChooser: forced)
             route(context)
@@ -80,14 +84,53 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSLog("Segue: %@ → %@ (%@)", context.request.primaryRecipient, destination.name, reason)
             launch(destination, for: context)
         case .chooser(let reason):
-            // M4 builds the chooser. Until then, the first destination stands in.
-            if let first = config.activeDestinations.first {
-                NSLog("Segue: chooser wanted (%@); M3 uses %@", reason, first.name)
-                launch(first, for: context)
-            } else {
-                launch(Router.mailAppFallback, for: context)
-            }
+            NSLog("Segue: chooser (%@)", reason)
+            showChooser(for: context)
         }
+    }
+
+    private func showChooser(for context: RouteContext) {
+        Timing.mark("routed")
+        let destinations = config.activeDestinations
+        chooser = ChooserPanel.present(context: context, destinations: destinations, settings: config.chooser,
+                                       supportDirectory: options.supportDirectory) { [weak self] result in
+            guard let self else { return }
+            self.chooser = nil
+            if let layout = result?.layoutChangedTo {
+                self.config.chooser.layout = layout
+                try? self.configStore.save(self.config)
+            }
+            guard let result else {
+                // Cancelled: hand focus back to where the link came from.
+                NSApp.hide(nil)
+                self.finishWork()
+                return
+            }
+            self.launch(result.destination, for: context)
+        }
+        Timing.mark("chooserShown")
+        if let file = options.snapshotFile {
+            DispatchQueue.main.async { [weak self] in
+                self?.chooser?.snapshot(to: file)
+                NSApp.terminate(nil)
+            }
+            return
+        }
+        if let marker = options.startupMarker {
+            // Cold-start measurement: the chooser is up, that's the number.
+            StartupMarker.write(to: marker)
+        }
+    }
+
+    /// First run: no config file at all. Build one from what's installed so
+    /// the first chooser already has useful buttons.
+    private func ensureConfigExists() {
+        guard !configStore.exists else { return }
+        var fresh = Config()
+        fresh.destinations = Discovery.proposeDestinations()
+        try? configStore.save(fresh)
+        config = configStore.load()
+        NSLog("Segue: first run, proposed %d destinations", fresh.destinations.count)
     }
 
     private func launch(_ destination: Destination, for context: RouteContext) {
@@ -106,11 +149,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// user opted into staying resident.
     private func finishWork() {
         pendingWork = max(0, pendingWork - 1)
-        if let marker = options.startupMarker {
+        if let marker = options.startupMarker, chooser == nil {
             StartupMarker.write(to: marker)
             return
         }
-        guard pendingWork == 0, placeholderWindow == nil, !config.general.stayRunning else { return }
+        guard pendingWork == 0, placeholderWindow == nil, chooser == nil, !config.general.stayRunning else { return }
         // Give the launched app's activation a moment to land, then go.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             NSApp.terminate(nil)

@@ -13,18 +13,10 @@ enum StartupMarker {
     static func write(to file: URL, thenQuit: Bool = true) {
         DispatchQueue.main.async {
             let readyMs = Int(Date().timeIntervalSince1970 * 1000)
-            let execMs = processStartEpochMs() ?? readyMs
-            try? "\(readyMs) \(execMs)\n".write(to: file, atomically: true, encoding: .utf8)
+            let execMs = Int(Timing.processStart.timeIntervalSince1970 * 1000)
+            Timing.mark("drawn")
+            try? "\(readyMs) \(execMs) \(Timing.report)\n".write(to: file, atomically: true, encoding: .utf8)
             if thenQuit { NSApp.terminate(nil) }
         }
-    }
-
-    private static func processStartEpochMs() -> Int? {
-        var info = kinfo_proc()
-        var size = MemoryLayout<kinfo_proc>.stride
-        var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
-        guard sysctl(&mib, UInt32(mib.count), &info, &size, nil, 0) == 0 else { return nil }
-        let tv = info.kp_proc.p_starttime
-        return Int(tv.tv_sec) * 1000 + Int(tv.tv_usec) / 1000
     }
 }
