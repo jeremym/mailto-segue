@@ -113,6 +113,11 @@ final class ConfigTests: XCTestCase {
         XCTAssertEqual(config.chooser, ChooserSettings())
         XCTAssertEqual(config.general, GeneralSettings())
         XCTAssertEqual(try ConfigStore.decode(Data("{}".utf8)), Config())
+        XCTAssertFalse(config.general.onboarded)
+        XCTAssertFalse(config.general.rulesPaused)
+        let flagged = try ConfigStore.decode(Data(#"{ "general": { "onboarded": true, "rulesPaused": true } }"#.utf8))
+        XCTAssertTrue(flagged.general.onboarded)
+        XCTAssertTrue(flagged.general.rulesPaused)
     }
 
     func testRuleDefaultsWhenKeysAreMissing() throws {

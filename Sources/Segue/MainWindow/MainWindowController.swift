@@ -54,10 +54,11 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 }
 
 enum MainSection: String, CaseIterable, Identifiable {
-    case history, destinations, rules, settings, about
+    case welcome, history, destinations, rules, settings, about
     var id: String { rawValue }
     var title: String {
         switch self {
+        case .welcome: return "Welcome"
         case .history: return "History"
         case .destinations: return "Destinations"
         case .rules: return "Rules"
@@ -67,6 +68,7 @@ enum MainSection: String, CaseIterable, Identifiable {
     }
     var symbol: String {
         switch self {
+        case .welcome: return "hand.wave"
         case .history: return "clock"
         case .destinations: return "square.grid.2x2"
         case .rules: return "arrow.triangle.branch"
@@ -85,15 +87,20 @@ struct MainView: View {
         _section = State(initialValue: initialSection)
     }
 
+    private var sections: [MainSection] {
+        MainSection.allCases.filter { $0 != .welcome || !model.config.general.onboarded || section == .welcome }
+    }
+
     var body: some View {
         NavigationSplitView {
-            List(MainSection.allCases, selection: Binding(get: { section }, set: { section = $0 ?? .history })) { s in
+            List(sections, selection: Binding(get: { section }, set: { section = $0 ?? .history })) { s in
                 Label(s.title, systemImage: s.symbol).font(.title3).padding(.vertical, 4).tag(s)
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200)
         } detail: {
             Group {
                 switch section {
+                case .welcome: OnboardingView(model: model) { model.config.general.onboarded = true; section = .history }
                 case .history: HistoryView(model: model)
                 case .destinations: DestinationsView(model: model, initialSelection: AppOptions.parse().selection)
                 case .rules: RulesView(model: model)
@@ -117,6 +124,9 @@ struct MainView: View {
             }
         }
         .background(Color(nsColor: .windowBackgroundColor))
-        .onAppear { model.refresh() }
+        .onAppear {
+            model.refresh()
+            model.requestSection = { section = $0 }
+        }
     }
 }

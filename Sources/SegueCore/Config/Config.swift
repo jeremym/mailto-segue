@@ -159,13 +159,16 @@ public struct GeneralSettings: Codable, Equatable, Sendable {
     public var plusAsSpace: Bool = false
     /// "Pause rules": every link shows the chooser until this is turned off.
     public var rulesPaused: Bool = false
+    /// The welcome screen was completed (or dismissed).
+    public var onboarded: Bool = false
     public init() {}
 
-    enum CodingKeys: String, CodingKey { case stayRunning, plusAsSpace, rulesPaused }
+    enum CodingKeys: String, CodingKey { case stayRunning, plusAsSpace, rulesPaused, onboarded }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         stayRunning = try c.decodeIfPresent(Bool.self, forKey: .stayRunning) ?? false
         plusAsSpace = try c.decodeIfPresent(Bool.self, forKey: .plusAsSpace) ?? false
         rulesPaused = try c.decodeIfPresent(Bool.self, forKey: .rulesPaused) ?? false
+        onboarded = try c.decodeIfPresent(Bool.self, forKey: .onboarded) ?? false
     }
 }

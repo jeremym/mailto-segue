@@ -24,6 +24,9 @@ final class AppModel {
     var onOpenEml: ((URL) -> Void)?
     var onTestDestination: ((Destination) -> Void)?
     var onStayRunningChanged: ((Bool) -> Void)?
+    var onTryIt: (() -> Void)?
+    /// Asks the window to switch sections (set by MainView).
+    var requestSection: ((MainSection) -> Void)?
 
     @ObservationIgnored private var saveTimer: Timer?
     @ObservationIgnored private(set) var installedBrowsers: [Discovery.InstalledApp] = []

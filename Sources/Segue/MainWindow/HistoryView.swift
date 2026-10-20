@@ -16,6 +16,22 @@ struct HistoryView: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            if !model.isMailtoDefault {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                    Text("Mailto Segue isn't your email app right now, so links go elsewhere.").font(.title3)
+                    Spacer()
+                    Button("Fix") { model.makeDefaultForMailto() }.controlSize(.large)
+                }
+                .padding(12)
+                .background(.orange.opacity(0.12))
+            }
+            historySplit
+        }
+    }
+
+    private var historySplit: some View {
         HSplitView {
             VStack(spacing: 0) {
                 TextField("Search address, subject or app", text: $query)

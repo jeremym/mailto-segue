@@ -125,3 +125,17 @@ two-line body intact.
       no longer quits. Off: the item and the login item go away.
 - [ ] With "Stay running" on, a link still routes (the running instance handles it) and the
       chooser still takes keys.
+
+## N1–N3 — Mailto Segue, the editor, first run
+
+- [ ] `make install` puts `Mailto Segue.app` in ~/Applications; the Dock and the menu bar say "Mailto Segue".
+- [ ] First launch (no `~/Library/Application Support/Mailto Segue/config.json`): the Welcome screen
+      shows; "Make it my email app" triggers the macOS prompt; after Use, step 1 turns green.
+      "Try it" opens the chooser with a sample link. Done → History; Welcome leaves the sidebar.
+- [ ] If Mail is made the default again, History shows the orange "Fix" banner.
+- [ ] Destinations: every field has a visible label and a boxed field; each `?` opens a short
+      explanation; typing a Gmail address renames the button to "Gmail — <address>" until you type
+      your own; "Signed in" lists the accounts of the chosen Chrome profile; Account number is
+      under Advanced.
+- [ ] Rules: conditions read as "Recipient's domain is in the domain acme.com"; "App the link came
+      from" offers a menu of running apps.

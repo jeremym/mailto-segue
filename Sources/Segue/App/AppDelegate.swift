@@ -25,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         m.onSendAgain = { [weak self] item, destination in self?.sendAgain(item, to: destination) }
         m.onOpenEml = { [weak self] url in self?.pendingWork += 1; self?.openMessage(at: url) }
         m.onTestDestination = { [weak self] d in self?.test(d) }
+        m.onTryIt = { [weak self] in self?.tryIt() }
         m.onStayRunningChanged = { [weak self] on in
             guard let self else { return }
             self.config.general.stayRunning = on
@@ -185,7 +186,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Main window and its actions
 
-    func showMainWindow(section: MainSection = .history) {
+    func showMainWindow(section requested: MainSection = .history) {
+        // First run: welcome screen, with buttons already discovered.
+        var section = requested
+        if requested == .history, !config.general.onboarded {
+            ensureConfigExists()
+            section = .welcome
+        }
         if let w = mainWindow {
             w.select(section)
             w.window?.makeKeyAndOrderFront(nil)
@@ -219,6 +226,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         pendingWork += 1
         if let destination { launch(destination, for: context, explanation: Explanation(text: "Sent again from History")) }
         else { showChooser(for: context) }
+    }
+
+    /// Welcome → "Try it": a sample link through the normal path (rules, chooser).
+    private func tryIt() {
+        config = model.config
+        let request = ComposeRequest(to: [EmailAddress(address: "test@example.com")], subject: "Trying Mailto Segue",
+                                     body: "This is a sample. Pick a button, or press Esc.")
+        let context = RouteContext(kind: .cli, request: request, source: SourceApp(bundleID: Bundle.main.bundleIdentifier ?? "", name: "Mailto Segue"), forceChooser: true)
+        pendingWork += 1
+        showChooser(for: context)
     }
 
     /// Destinations → "Test this destination": a sample email, for real.

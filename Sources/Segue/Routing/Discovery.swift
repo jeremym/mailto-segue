@@ -67,11 +67,14 @@ enum Discovery {
 
     struct InstalledApp { var bundleID: String; var name: String; var url: URL }
 
+    /// Apps that register for mailto: but are not mail apps.
+    private static let notMailApps: Set<String> = ["us.zoom.xos", "com.microsoft.teams2", "com.microsoft.teams", "com.hnc.Discord", "com.tinyspeck.slackmacgap"]
+
     static func installedMailApps() -> [InstalledApp] {
         let urls = NSWorkspace.shared.urlsForApplications(toOpen: URL(string: "mailto:")!)
         var apps = urls.compactMap(app(at:)).filter {
-            $0.bundleID != Bundle.main.bundleIdentifier && BrowserLauncher.family(of: $0.bundleID) == .other
-                && !$0.bundleID.hasPrefix("com.apple.") || $0.bundleID == "com.apple.mail"
+            ($0.bundleID != Bundle.main.bundleIdentifier && BrowserLauncher.family(of: $0.bundleID) == .other
+                && !$0.bundleID.hasPrefix("com.apple.") && !notMailApps.contains($0.bundleID)) || $0.bundleID == "com.apple.mail"
         }
         apps.sort { a, b in
             if a.bundleID == "com.apple.mail" { return true }
