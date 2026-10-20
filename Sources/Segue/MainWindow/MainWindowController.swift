@@ -20,10 +20,10 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
     private init(model: AppModel, section: MainSection) {
         self.model = model
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 960, height: 640),
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1180, height: 760),
                               styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
         window.title = "Mailto Segue"
-        window.minSize = NSSize(width: 760, height: 480)
+        window.minSize = NSSize(width: 980, height: 560)
         window.center()
         window.setFrameAutosaveName("SegueMain")
         window.contentView = NSHostingView(rootView: MainView(model: model, initialSection: section))
@@ -95,13 +95,13 @@ struct MainView: View {
             Group {
                 switch section {
                 case .history: HistoryView(model: model)
-                case .destinations: DestinationsView(model: model)
+                case .destinations: DestinationsView(model: model, initialSelection: AppOptions.parse().selection)
                 case .rules: RulesView(model: model)
                 case .settings: SettingsView(model: model)
                 case .about: AboutView()
                 }
             }
-            .frame(minWidth: 520)
+            .frame(minWidth: 760)
         }
         .overlay(alignment: .bottom) {
             if let msg = model.statusMessage {

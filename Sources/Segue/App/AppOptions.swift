@@ -13,6 +13,8 @@ struct AppOptions {
     var snapshotFile: URL?
     /// `--section history|destinations|rules|settings|about`: which main-window section to open.
     var section: String?
+    /// `--select <destination-id>`: pre-select a destination in the editor (snapshots).
+    var selection: String?
 
     static func parse(_ args: [String] = CommandLine.arguments) -> AppOptions {
         func value(after flag: String) -> String? {
@@ -26,7 +28,8 @@ struct AppOptions {
             dryRunFile: value(after: "--dry-run").map { URL(fileURLWithPath: $0) },
             startupMarker: value(after: "--startup-marker").map { URL(fileURLWithPath: $0) },
             snapshotFile: value(after: "--snapshot").map { URL(fileURLWithPath: $0) },
-            section: value(after: "--section")
+            section: value(after: "--section"),
+            selection: value(after: "--select")
         )
     }
 }

@@ -128,6 +128,43 @@ final class AppModel {
         }
     }
 
+    /// Google accounts signed into the chosen browser profile (or all of its
+    /// profiles when none is chosen), for the Gmail account menu.
+    func signedInAccounts(browserBundleID: String?, profile: String?) -> [String] {
+        guard let id = browserBundleID, BrowserLauncher.family(of: id) == .chromium else { return [] }
+        let profiles = ChromiumProfiles.profiles(forBundleID: id)
+        let chosen = (profile ?? "").isEmpty ? profiles : profiles.filter { $0.directory == profile }
+        var seen = Set<String>()
+        return chosen.compactMap { $0.userName }.filter { seen.insert($0).inserted }
+    }
+
+    /// "Gmail — me@work.com", "Mail", "Copy address": the name a destination
+    /// gets until the user types their own.
+    func autoName(for d: Destination) -> String {
+        switch d.type {
+        case .webmail:
+            let service = d.provider?.displayName ?? "Webmail"
+            if let e = d.account?.email, !e.isEmpty { return "\(service) — \(e)" }
+            if let i = d.account?.index { return "\(service) — account \(i + 1)" }
+            return service
+        case .app:
+            return installedMailApps.first { $0.bundleID == d.bundleID }?.name ?? (d.bundleID ?? "Mail app")
+        case .clipboard: return "Copy address"
+        case .template: return "Custom URL"
+        case .browserHandler:
+            if let id = d.browser?.bundleID, let app = installedBrowsers.first(where: { $0.bundleID == id }) { return "\(app.name)'s own handler" }
+            return "Browser's own handler"
+        }
+    }
+
+    /// Running apps with a bundle ID, for the "App the link came from" picker.
+    func runningApps() -> [(bundleID: String, name: String)] {
+        NSWorkspace.shared.runningApplications
+            .filter { $0.activationPolicy == .regular }
+            .compactMap { app in app.bundleIdentifier.map { ($0, app.localizedName ?? $0) } }
+            .sorted { $0.1.localizedCaseInsensitiveCompare($1.1) == .orderedAscending }
+    }
+
     /// Copies a picture into `images/` and returns the relative path.
     func importImage(from url: URL) -> String? {
         let dir = supportDirectory.appendingPathComponent("images", isDirectory: true)
