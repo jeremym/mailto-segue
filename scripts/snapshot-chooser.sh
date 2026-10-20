@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT="${1:-.context/snapshots}"
 mkdir -p "$OUT"
-APP="$(pwd)/build/Segue.app"
+APP="$(pwd)/build/Mailto Segue.app"
 [[ -d "$APP" ]] || { echo "error: run make bundle first" >&2; exit 1; }
 
 for layout in largeTiles smallTiles compactList; do

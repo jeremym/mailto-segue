@@ -2,13 +2,13 @@
 
 Things an agent can't verify without opening real browsers and mail apps on
 your Mac. Tick them when you run a milestone build (`make install`, then
-`open ~/Applications/Segue.app`).
+`open "$HOME/Applications/Mailto Segue.app"`).
 
 ## M3 — app shell
 
-- [ ] `open -a ~/Applications/Segue.app "mailto:you@example.com?subject=Hi"` with a config whose
+- [ ] `open -a "Mailto Segue" "mailto:you@example.com?subject=Hi"` with a config whose
       `fallback` is a Gmail-in-Chrome destination → Chrome opens the compose form in the right
-      profile → Segue is gone from Activity Monitor within a second.
+      profile → Mailto Segue is gone from Activity Monitor within a second.
 - [ ] Same with `"windowMode": "app"` → a chromeless compose window.
 - [ ] A `type: app` destination for Mail → Mail opens the draft; no loop.
 - [ ] A `browserHandler` destination for a Chrome profile whose mailto handler is Gmail → Gmail

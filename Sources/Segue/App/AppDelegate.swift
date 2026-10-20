@@ -226,7 +226,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         config = model.config
         let request = ComposeRequest(to: [EmailAddress(address: "test@example.com")], cc: [EmailAddress(address: "cc@example.com")],
                                      subject: "Segue test: A & B = C + D #1 ?", body: "Line one\nLine two\n\nIf you can read both lines, the body made it.")
-        let context = RouteContext(kind: .cli, request: request, source: SourceApp(bundleID: Bundle.main.bundleIdentifier ?? "", name: "Segue"))
+        let context = RouteContext(kind: .cli, request: request, source: SourceApp(bundleID: Bundle.main.bundleIdentifier ?? "", name: "Mailto Segue"))
         pendingWork += 1
         launch(destination, for: context, explanation: Explanation(text: "Test from Settings"))
     }
@@ -363,7 +363,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             finishWork()
         case "make-default":
             DefaultHandler.setMailtoHandler(to: Bundle.main.bundleURL) { [weak self] ok in
-                Toast.show(ok ? "Segue is now the default email app." : "Not changed.") { self?.finishWork() }
+                Toast.show(ok ? "Mailto Segue is now the default email app." : "Not changed.") { self?.finishWork() }
             }
         case "restore-default":
             DefaultHandler.setMailtoHandler(to: DefaultHandler.mailAppURL) { [weak self] ok in
@@ -423,7 +423,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func makeDefaultFromMenu() {
         DefaultHandler.setMailtoHandler(to: Bundle.main.bundleURL) { ok in
-            Toast.show(ok ? "Segue is now the default email app." : "Not changed.")
+            Toast.show(ok ? "Mailto Segue is now the default email app." : "Not changed.")
         }
     }
 

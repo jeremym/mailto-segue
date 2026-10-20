@@ -10,15 +10,15 @@ struct SettingsView: View {
             Section("Default apps") {
                 LabeledContent("Email links (mailto:)") {
                     HStack {
-                        Text(model.isMailtoDefault ? "Segue" : "Not Segue").foregroundStyle(model.isMailtoDefault ? .green : .secondary)
-                        Button("Make Segue default") { model.makeDefaultForMailto() }.disabled(model.isMailtoDefault)
+                        Text(model.isMailtoDefault ? "Mailto Segue" : "Not Mailto Segue").foregroundStyle(model.isMailtoDefault ? .green : .secondary)
+                        Button("Make Mailto Segue default") { model.makeDefaultForMailto() }.disabled(model.isMailtoDefault)
                         Button("Restore Mail") { model.restoreMailForMailto() }
                     }
                 }
                 LabeledContent(".eml files") {
                     HStack {
-                        Text(model.isEmlDefault ? "Segue" : "Not Segue").foregroundStyle(model.isEmlDefault ? .green : .secondary)
-                        Button("Open .eml with Segue") { model.makeDefaultForEml() }.disabled(model.isEmlDefault)
+                        Text(model.isEmlDefault ? "Mailto Segue" : "Not Mailto Segue").foregroundStyle(model.isEmlDefault ? .green : .secondary)
+                        Button("Open .eml with Mailto Segue") { model.makeDefaultForEml() }.disabled(model.isEmlDefault)
                         Button("Restore Mail") { model.restoreMailForEml() }
                     }
                 }
@@ -71,7 +71,7 @@ struct SettingsView: View {
                 Toggle("Stay running in the menu bar (and open at login)", isOn: $model.config.general.stayRunning)
                     .onChange(of: model.config.general.stayRunning) { _, on in model.onStayRunningChanged?(on) }
                 Toggle("Pause rules (every link shows the chooser)", isOn: $model.config.general.rulesPaused)
-                Text("Off by default: Segue launches when a link arrives and quits when it's done.").font(.callout).foregroundStyle(.secondary)
+                Text("Off by default: Mailto Segue launches when a link arrives and quits when it's done.").font(.callout).foregroundStyle(.secondary)
                 Toggle("Treat + as a space in links (some senders encode spaces that way)", isOn: $model.config.general.plusAsSpace)
             }
 

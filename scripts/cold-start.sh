@@ -6,11 +6,11 @@
 # prints each number plus the medians. The budget is 200 ms for Segue's part
 # (CLAUDE.md); LaunchServices adds roughly 100 ms on top that we can't change.
 #
-#   scripts/cold-start.sh [--app build/Segue.app] [--runs 5]
+#   scripts/cold-start.sh [--app "build/Mailto Segue.app"] [--runs 5]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APP="build/Segue.app"
+APP="build/Mailto Segue.app"
 RUNS=5
 MODE="window"
 while [[ $# -gt 0 ]]; do

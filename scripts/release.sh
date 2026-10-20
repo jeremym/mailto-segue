@@ -11,9 +11,9 @@
 #
 # Steps: check the tree is clean → set the version in Version.swift and commit
 # → make test → universal bundle signed with the release identity → verify →
-# dist/Segue-X.Y.Z.zip + .sha256 → git tag vX.Y.Z. Then, by hand:
-#   gh release create vX.Y.Z dist/Segue-X.Y.Z.zip dist/Segue-X.Y.Z.zip.sha256 --title vX.Y.Z --generate-notes
-#   scripts/update-tap.sh --tap ~/GitProjects/personal/homebrew-tap --version X.Y.Z --zip dist/Segue-X.Y.Z.zip
+# dist/MailtoSegue-X.Y.Z.zip + .sha256 → git tag vX.Y.Z. Then, by hand:
+#   gh release create vX.Y.Z dist/MailtoSegue-X.Y.Z.zip dist/MailtoSegue-X.Y.Z.zip.sha256 --title vX.Y.Z --generate-notes
+#   scripts/update-tap.sh --tap ~/GitProjects/personal/homebrew-tap --version X.Y.Z --zip dist/MailtoSegue-X.Y.Z.zip
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -52,22 +52,23 @@ step "Building the universal bundle (identity '$IDENTITY')"
 BUILD_NUMBER="$(git rev-list --count HEAD)" UNIVERSAL=1 CODESIGN_IDENTITY="$IDENTITY" scripts/bundle.sh
 
 step "Verifying"
-lipo -info build/Segue.app/Contents/MacOS/Segue
-codesign --verify --strict --verbose=2 build/Segue.app
-codesign -d -r- build/Segue.app 2>&1 | grep designated
+APP="build/Mailto Segue.app"
+lipo -info "$APP/Contents/MacOS/Segue"
+codesign --verify --strict --verbose=2 "$APP"
+codesign -d -r- "$APP" 2>&1 | grep designated
 
 step "Packaging"
 mkdir -p dist
-ZIP="dist/Segue-$VERSION.zip"
+ZIP="dist/MailtoSegue-$VERSION.zip"
 rm -f "$ZIP" "$ZIP.sha256"
-ditto -c -k --keepParent build/Segue.app "$ZIP"
-(cd dist && shasum -a 256 "Segue-$VERSION.zip" > "Segue-$VERSION.zip.sha256")
+ditto -c -k --keepParent "$APP" "$ZIP"
+(cd dist && shasum -a 256 "MailtoSegue-$VERSION.zip" > "MailtoSegue-$VERSION.zip.sha256")
 cat "$ZIP.sha256"
 du -h "$ZIP" | cut -f1
 
 if [[ "$DRY_RUN" == 0 ]]; then
     step "Tagging v$VERSION"
-    git tag -a "v$VERSION" -m "Segue $VERSION"
+    git tag -a "v$VERSION" -m "Mailto Segue $VERSION"
     echo
     echo "Next:"
     echo "  gh release create v$VERSION $ZIP $ZIP.sha256 --title v$VERSION --generate-notes"

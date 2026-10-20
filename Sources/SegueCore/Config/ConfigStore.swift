@@ -4,7 +4,7 @@ import Foundation
 /// If the file is unreadable or invalid, `load()` keeps the last good config
 /// and records the problem in `lastError`.
 public final class ConfigStore: @unchecked Sendable {
-    public static let folderName = "Segue"
+    public static let folderName = "Mailto Segue"
 
     public let directory: URL
     public var fileURL: URL { directory.appendingPathComponent("config.json") }
@@ -17,7 +17,7 @@ public final class ConfigStore: @unchecked Sendable {
         self.directory = directory
     }
 
-    /// `~/Library/Application Support/Segue`.
+    /// `~/Library/Application Support/Mailto Segue`.
     public static func defaultDirectory() -> URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")

@@ -10,7 +10,7 @@ enum Doctor {
     static func run(config: Config, store: ConfigStore, supportDirectory: URL) -> [Line] {
         var lines: [Line] = []
         let bundle = Bundle.main.bundleURL
-        lines.append(Line(ok: true, text: "Segue \(SegueVersion.string) at \(bundle.path)"))
+        lines.append(Line(ok: true, text: "Mailto Segue \(SegueVersion.string) at \(bundle.path)"))
         if let err = store.lastError {
             lines.append(Line(ok: false, text: "config.json: \(err)"))
         } else {

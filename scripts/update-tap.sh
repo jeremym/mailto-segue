@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Bump the Homebrew cask in a local clone of jeremym/homebrew-tap after a
-# release. Creates Casks/segue.rb from distribution/segue.rb the first time,
+# release. Creates Casks/mailto-segue.rb from distribution/mailto-segue.rb the first time,
 # rewrites the version and sha256, shows the diff, and stops: it does NOT
 # commit or push, so you review and push with your own git credentials.
 #
@@ -25,19 +25,19 @@ if [[ -z "$SHA256" ]]; then
     SHA256="$(awk '{print $1}' "$ZIP.sha256")"
 fi
 
-CASK="$TAP/Casks/segue.rb"
+CASK="$TAP/Casks/mailto-segue.rb"
 if [[ ! -f "$CASK" ]]; then
     mkdir -p "$TAP/Casks"
-    cp distribution/segue.rb "$CASK"
-    echo "==> Created $CASK from distribution/segue.rb"
+    cp distribution/mailto-segue.rb "$CASK"
+    echo "==> Created $CASK from distribution/mailto-segue.rb"
 fi
 
 /usr/bin/sed -i '' -E "s/version \"[^\"]+\"/version \"$VERSION\"/" "$CASK"
 /usr/bin/sed -i '' -E "s/sha256 \"[^\"]+\"/sha256 \"$SHA256\"/" "$CASK"
 
 echo "==> Updated $CASK:"
-git -C "$TAP" --no-pager diff -- Casks/segue.rb || true
-git -C "$TAP" status --short -- Casks/segue.rb || true
+git -C "$TAP" --no-pager diff -- Casks/mailto-segue.rb || true
+git -C "$TAP" status --short -- Casks/mailto-segue.rb || true
 
 echo
 echo "Optional validation:"
@@ -45,4 +45,4 @@ echo "  brew audit --cask --online $CASK"
 echo "  brew style $CASK"
 echo
 echo "Then review and push yourself:"
-echo "  git -C \"$TAP\" add Casks/segue.rb && git -C \"$TAP\" commit -m \"segue $VERSION\" && git -C \"$TAP\" push"
+echo "  git -C \"$TAP\" add Casks/mailto-segue.rb && git -C \"$TAP\" commit -m \"mailto-segue $VERSION\" && git -C \"$TAP\" push"

@@ -9,7 +9,7 @@ let args = Array(CommandLine.arguments.dropFirst())
 
 func usage() -> String {
     """
-    segue \(SegueVersion.string) — route mailto: links and .eml files
+    segue \(SegueVersion.string) — the Mailto Segue command: route mailto: links and .eml files
 
     usage:
       segue route "mailto:pat@acme.com?subject=Hi"   route a link (rules, or the chooser)
@@ -98,7 +98,7 @@ case "doctor":
         Thread.sleep(forTimeInterval: 0.05)
         waited += 0.05
     }
-    guard let text = try? String(contentsOf: out, encoding: .utf8) else { fail("Segue did not answer. Is it installed and registered? Try: open -a Segue") }
+    guard let text = try? String(contentsOf: out, encoding: .utf8) else { fail("Mailto Segue did not answer. Is it installed and registered? Try: open -a \"Mailto Segue\"") }
     try? FileManager.default.removeItem(at: out)
     var problems = 0
     for line in text.split(separator: "\n") {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# End-to-end dry run: launch build/Segue.app with a mailto: and a throwaway
+# End-to-end dry run: launch "build/Mailto Segue.app" with a mailto: and a throwaway
 # config, and print the plan it would have executed. Opens nothing.
 #
 #   scripts/route-test.sh [mailto-url] [fallback-destination-id]
@@ -9,7 +9,7 @@ cd "$(dirname "$0")/.."
 
 MAILTO="${1:-mailto:pat@acme.com,lee@acme.com?cc=cc@acme.com&subject=A%20%26%20B%20%3D%20C&body=line%20one%0Aline%20two}"
 FALLBACK="${2:-gmail-work}"
-APP="$(pwd)/build/Segue.app"
+APP="$(pwd)/build/Mailto Segue.app"
 [[ -d "$APP" ]] || { echo "error: run make bundle first" >&2; exit 1; }
 
 DIR="$(mktemp -d -t segue-route)"

@@ -14,7 +14,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         super.init()
         if let button = item.button {
-            button.image = NSImage(systemSymbolName: "envelope.arrow.triangle.branch", accessibilityDescription: "Segue")
+            button.image = NSImage(systemSymbolName: "envelope.arrow.triangle.branch", accessibilityDescription: "Mailto Segue")
             button.image?.isTemplate = true
         }
         menu.delegate = self
@@ -30,7 +30,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         guard let delegate else { return }
         let config = delegate.currentConfig
 
-        let open = NSMenuItem(title: "Open Segue", action: #selector(openMain), keyEquivalent: "")
+        let open = NSMenuItem(title: "Open Mailto Segue", action: #selector(openMain), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
         menu.addItem(.separator())
@@ -57,7 +57,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         menu.addItem(pause)
 
         if !DefaultHandler.isSegueDefaultForMailto() {
-            let def = NSMenuItem(title: "Make Segue the default email app…", action: #selector(makeDefault), keyEquivalent: "")
+            let def = NSMenuItem(title: "Make Mailto Segue the default email app…", action: #selector(makeDefault), keyEquivalent: "")
             def.target = self
             menu.addItem(def)
         }
@@ -68,7 +68,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             menu.addItem(warn)
         }
         menu.addItem(.separator())
-        let quit = NSMenuItem(title: "Quit Segue", action: #selector(quit), keyEquivalent: "q")
+        let quit = NSMenuItem(title: "Quit Mailto Segue", action: #selector(quit), keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)
     }

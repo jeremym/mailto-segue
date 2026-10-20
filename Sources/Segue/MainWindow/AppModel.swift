@@ -176,7 +176,7 @@ final class AppModel {
     func makeDefaultForMailto() {
         DefaultHandler.setMailtoHandler(to: Bundle.main.bundleURL) { [weak self] ok in
             self?.isMailtoDefault = ok
-            self?.statusMessage = ok ? "Segue is now the default email app." : "Not changed. (Did you click Keep?)"
+            self?.statusMessage = ok ? "Mailto Segue is now the default email app." : "Not changed. (Did you click Keep?)"
         }
     }
 
@@ -190,7 +190,7 @@ final class AppModel {
     func makeDefaultForEml() {
         DefaultHandler.setEmlHandler(to: Bundle.main.bundleURL) { [weak self] ok in
             self?.isEmlDefault = ok
-            self?.statusMessage = ok ? "Segue now opens .eml files." : "Not changed."
+            self?.statusMessage = ok ? "Mailto Segue now opens .eml files." : "Not changed."
         }
     }
 

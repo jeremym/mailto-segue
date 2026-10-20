@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# Assemble build/Segue.app from the SwiftPM products and sign it.
+# Assemble "build/Mailto Segue.app" from the SwiftPM products and sign it.
 #
 #   scripts/bundle.sh [--universal] [--identity NAME] [--build N] [--configuration release|debug]
 #
 # Env alternatives: UNIVERSAL=1, CODESIGN_IDENTITY (default "-" = ad-hoc),
-# BUILD_NUMBER (default 1). Output: build/Segue.app (+ build/segue symlink).
+# BUILD_NUMBER (default 1). Output: "build/Mailto Segue.app" (+ build/segue symlink).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -38,7 +38,7 @@ step "Building Segue $VERSION ($CONFIG$([[ "$UNIVERSAL" == 1 ]] && echo ', unive
 swift build -c "$CONFIG" $ARCH_FLAGS
 BIN_DIR="$(swift build -c "$CONFIG" $ARCH_FLAGS --show-bin-path)"
 
-APP="build/Segue.app"
+APP="build/Mailto Segue.app"
 step "Assembling $APP"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Helpers" "$APP/Contents/Resources"
@@ -54,7 +54,7 @@ fi
 if [[ -d Resources/ServiceIcons ]]; then
     cp -R Resources/ServiceIcons "$APP/Contents/Resources/ServiceIcons"
 fi
-ln -sf "Segue.app/Contents/Helpers/segue" build/segue
+ln -sf "Mailto Segue.app/Contents/Helpers/segue" build/segue
 
 step "Signing with identity '$IDENTITY'"
 # Nested code first, then the bundle (--deep is deprecated).

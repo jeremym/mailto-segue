@@ -22,7 +22,7 @@ struct HistoryView: View {
                     .textFieldStyle(.roundedBorder).font(.title3).padding(10)
                 if model.historyItems.isEmpty {
                     ContentUnavailableView("Nothing routed yet", systemImage: "clock",
-                                           description: Text("Every mailto: link and .eml reply Segue hands off shows up here."))
+                                           description: Text("Every mailto: link and .eml reply Mailto Segue hands off shows up here."))
                 } else {
                     List(filtered, selection: $selectedID) { item in
                         HStack(spacing: 10) {
@@ -116,10 +116,10 @@ struct AboutView: View {
     var body: some View {
         VStack(spacing: 14) {
             Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 96, height: 96)
-            Text("Segue").font(.largeTitle.bold())
+            Text("Mailto Segue").font(.largeTitle.bold())
             Text("Version \(SegueVersion.string)").font(.title3).foregroundStyle(.secondary)
             Text("Every mailto: link, exactly where you want it.").font(.title3)
-            Text("Segue is a marshaller, not a mail client. It never composes, edits or sends mail.")
+            Text("Mailto Segue is a marshaller, not a mail client. It never composes, edits or sends mail.")
                 .font(.body).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 420)
             Divider().frame(width: 300)
             VStack(spacing: 6) {

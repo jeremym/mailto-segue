@@ -22,7 +22,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         self.model = model
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 960, height: 640),
                               styleMask: [.titled, .closable, .resizable, .miniaturizable], backing: .buffered, defer: false)
-        window.title = "Segue"
+        window.title = "Mailto Segue"
         window.minSize = NSSize(width: 760, height: 480)
         window.center()
         window.setFrameAutosaveName("SegueMain")

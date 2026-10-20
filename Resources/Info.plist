@@ -11,9 +11,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Segue</string>
+	<string>Mailto Segue</string>
 	<key>CFBundleDisplayName</key>
-	<string>Segue</string>
+	<string>Mailto Segue</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

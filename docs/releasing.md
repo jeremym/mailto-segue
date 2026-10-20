@@ -1,4 +1,4 @@
-# Releasing Segue
+# Releasing Mailto Segue
 
 Everything happens on your Mac. No CI, no secrets, no tokens: `git` and `gh`
 are already signed in through the browser.
@@ -24,7 +24,7 @@ The script prints the certificate leaf SHA-1. Paste it into README.md under
 
 `jeremym/homebrew-tap` already exists with a local clone at
 `~/GitProjects/personal/homebrew-tap`. The first `scripts/update-tap.sh` run
-creates `Casks/segue.rb` there from `distribution/segue.rb`.
+creates `Casks/mailto-segue.rb` there from `distribution/mailto-segue.rb`.
 
 ## Cutting a release
 
@@ -38,20 +38,20 @@ scripts/release.sh 1.2.3
 #   and tags v1.2.3
 
 git push && git push --tags
-gh release create v1.2.3 dist/Segue-1.2.3.zip dist/Segue-1.2.3.zip.sha256 --title v1.2.3 --generate-notes
+gh release create v1.2.3 dist/MailtoSegue-1.2.3.zip dist/MailtoSegue-1.2.3.zip.sha256 --title v1.2.3 --generate-notes
 
-scripts/update-tap.sh --tap ~/GitProjects/personal/homebrew-tap --version 1.2.3 --zip dist/Segue-1.2.3.zip
+scripts/update-tap.sh --tap ~/GitProjects/personal/homebrew-tap --version 1.2.3 --zip dist/MailtoSegue-1.2.3.zip
 #   review the diff it prints, then:
-git -C ~/GitProjects/personal/homebrew-tap add Casks/segue.rb
-git -C ~/GitProjects/personal/homebrew-tap commit -m "segue 1.2.3"
+git -C ~/GitProjects/personal/homebrew-tap add Casks/mailto-segue.rb
+git -C ~/GitProjects/personal/homebrew-tap commit -m "mailto-segue 1.2.3"
 git -C ~/GitProjects/personal/homebrew-tap push
 ```
 
 Then on any Mac:
 
 ```sh
-brew install --cask jeremym/tap/segue
-open -a Segue
+brew install --cask jeremym/tap/mailto-segue
+open -a "Mailto Segue"
 ```
 
 ## Checking a build without releasing
@@ -63,6 +63,6 @@ scripts/release.sh 0.0.1 --dry-run   # universal, ad-hoc, no commit/tag
 ## Verifying a download (for the README)
 
 ```sh
-shasum -a 256 Segue-1.2.3.zip             # matches the .sha256 on the release
-codesign -d -r- /Applications/Segue.app   # certificate leaf = H"<leaf hash>"
+shasum -a 256 MailtoSegue-1.2.3.zip                # matches the .sha256 on the release
+codesign -d -r- "/Applications/Mailto Segue.app"   # certificate leaf = H"<leaf hash>"
 ```

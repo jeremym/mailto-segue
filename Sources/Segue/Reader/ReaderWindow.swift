@@ -195,7 +195,7 @@ final class ReaderWindowController: NSWindowController, NSWindowDelegate {
         updateHighlight()
 
         hintLabel.stringValue = destinations.isEmpty
-            ? "No destinations yet. Add one in Segue's settings."
+            ? "No destinations yet. Add one in Mailto Segue's settings."
             : "★ = the account that received this · Enter picks the highlighted · R / A / F switch · ⌘+ ⌘− zoom · Esc closes"
         hintLabel.font = Design.font(11, scale: textScale)
         hintLabel.textColor = .tertiaryLabelColor
@@ -251,7 +251,7 @@ final class ReaderWindowController: NSWindowController, NSWindowDelegate {
     }
 
     @objc private func revealAttachments() {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("Segue attachments/" + fileURL.deletingPathExtension().lastPathComponent, isDirectory: true)
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("Mailto Segue attachments/" + fileURL.deletingPathExtension().lastPathComponent, isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         var urls: [URL] = []
         for a in message.attachments {
