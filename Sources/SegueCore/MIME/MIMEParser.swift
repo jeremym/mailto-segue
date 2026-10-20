@@ -211,7 +211,7 @@ public enum MIMEParser {
 }
 
 enum DateParsing {
-    nonisolated(unsafe) private static let formatters: [DateFormatter] = {
+    private static let formatters: [DateFormatter] = {
         let patterns = [
             "EEE, d MMM yyyy HH:mm:ss Z", "d MMM yyyy HH:mm:ss Z", "EEE, d MMM yyyy HH:mm Z", "d MMM yyyy HH:mm Z",
             "EEE, d MMM yyyy HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ssZ", "EEE MMM d HH:mm:ss yyyy",
