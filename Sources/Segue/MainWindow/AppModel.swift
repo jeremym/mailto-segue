@@ -31,6 +31,7 @@ final class AppModel {
     @ObservationIgnored private var saveTimer: Timer?
     @ObservationIgnored private(set) var installedBrowsers: [Discovery.InstalledApp] = []
     @ObservationIgnored private(set) var installedMailApps: [Discovery.InstalledApp] = []
+    @ObservationIgnored private(set) var defaultBrowser: Discovery.InstalledApp?
 
     init(store: ConfigStore, config: Config, supportDirectory: URL) {
         self.store = store
@@ -47,6 +48,7 @@ final class AppModel {
         isEmlDefault = DefaultHandler.isSegueDefaultForEml()
         installedBrowsers = Discovery.installedBrowsers()
         installedMailApps = Discovery.installedMailApps()
+        defaultBrowser = Discovery.defaultBrowser()
     }
 
     private func scheduleSave() {

@@ -73,10 +73,15 @@ public struct Config: Codable, Equatable, Sendable {
             issues.append("config version \(version) is newer than this Segue understands (\(Config.currentVersion))")
         }
         var seen = Set<String>()
+        var keyOwners: [String: String] = [:]
         for d in destinations {
             if d.id.isEmpty { issues.append("a destination has an empty id") }
             if !seen.insert(d.id).inserted { issues.append("duplicate destination id '\(d.id)'") }
             issues += d.validate().map { "destination '\(d.id)': \($0)" }
+            if let k = d.key?.lowercased(), !k.isEmpty, d.enabled ?? true {
+                if let other = keyOwners[k] { issues.append("shortcut '\(k)' is used by both '\(other)' and '\(d.name)'; only the first one answers to it") }
+                else { keyOwners[k] = d.name }
+            }
         }
         for r in rules {
             if let then = r.then, !seen.contains(then) {

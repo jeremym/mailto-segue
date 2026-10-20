@@ -116,15 +116,23 @@ struct DestinationEditor: View {
                         BoxedField(text: $destination.name, example: "Gmail — work")
                     }
                     FieldRow(label: "Keyboard shortcut", help: Help.shortcut) {
-                        BoxedField(text: $destination.keyText, example: "1").frame(width: 70)
+                        HStack(spacing: 10) {
+                            BoxedField(text: $destination.keyText, example: "1").frame(width: 70)
+                            if let other = shortcutClash {
+                                Label("Also used by \(other). Only the first button in the list answers to it.", systemImage: "exclamationmark.triangle")
+                                    .font(.callout).foregroundStyle(.orange)
+                            }
+                        }
                     }
                     FieldRow(label: "Pinned", help: Help.pinned) { Toggle("", isOn: $destination.isPinned).labelsHidden() }
                     FieldRow(label: "Enabled") { Toggle("", isOn: $destination.isEnabled).labelsHidden() }
                 }
                 group("Where the email goes") { whereSection }
-                group("This account's address") {
-                    FieldRow(label: "Sends from", help: Help.sendsAs) {
-                        BoxedField(text: $destination.sendsAsText, example: "me@work.com")
+                if !usesAccountAsAddress {
+                    group("This account's address") {
+                        FieldRow(label: "Sends from", help: Help.sendsAs) {
+                            BoxedField(text: $destination.sendsAsText, example: "me@work.com")
+                        }
                     }
                 }
                 group("Look") {
@@ -159,9 +167,11 @@ struct DestinationEditor: View {
         }
         .controlSize(.large)
         .onAppear { lastAutoName = model.autoName(for: destination) }
-        .onChange(of: destination.accountEmail) { _, new in
+        .onChange(of: destination.accountEmail) { old, new in
             autoRename()
-            if destination.sendsAsText.isEmpty, !new.isEmpty { destination.sendsAsText = new }
+            var list = (destination.sendsAs ?? []).filter { $0.lowercased() != old.lowercased() }
+            if !new.isEmpty, !list.contains(where: { $0.lowercased() == new.lowercased() }) { list.insert(new, at: 0) }
+            destination.sendsAs = list.isEmpty ? nil : list
         }
         .onChange(of: destination.accountIndexText) { _, _ in autoRename() }
         .onChange(of: destination.providerValue) { _, _ in autoRename(); refreshTiles() }
@@ -222,6 +232,9 @@ struct DestinationEditor: View {
                     FieldRow(label: "Account number", help: Help.accountIndex) {
                         BoxedField(text: $destination.accountIndexText, example: "0").frame(width: 70)
                     }
+                    FieldRow(label: "Other addresses", help: Help.aliases) {
+                        BoxedField(text: $destination.sendsAsText, example: "me@work.com, alias@work.com")
+                    }
                 }
                 .font(.title3)
             }
@@ -267,7 +280,11 @@ struct DestinationEditor: View {
     @ViewBuilder private var browserRows: some View {
         FieldRow(label: "Browser", help: Help.browser) {
             Picker("", selection: $destination.browserBundleID) {
-                Text("System default").tag("default")
+                if let def = model.defaultBrowser {
+                    Label { Text("System default (\(def.name))") } icon: { Image(nsImage: TileImages.fitted(NSWorkspace.shared.icon(forFile: def.url.path), size: 18)) }.tag("default")
+                } else {
+                    Label("System default", systemImage: "safari").tag("default")
+                }
                 ForEach(model.installedBrowsers, id: \.bundleID) { app in
                     Label { Text(app.name) } icon: { Image(nsImage: TileImages.fitted(NSWorkspace.shared.icon(forFile: app.url.path), size: 18)) }.tag(app.bundleID)
                 }
@@ -306,6 +323,12 @@ struct DestinationEditor: View {
         }
     }
 
+    /// Another enabled button with the same shortcut, if any.
+    private var shortcutClash: String? {
+        guard let k = destination.key?.lowercased(), !k.isEmpty else { return nil }
+        return model.config.destinations.first { $0.id != destination.id && ($0.enabled ?? true) && $0.key?.lowercased() == k }?.name
+    }
+
     /// Keeps the name in step with the account until the user types their own.
     private func autoRename() {
         let auto = model.autoName(for: destination)
@@ -313,6 +336,12 @@ struct DestinationEditor: View {
             || destination.name == (destination.provider?.displayName ?? "") || destination.name == "Gmail"
         if stale { destination.name = auto }
         lastAutoName = auto
+    }
+
+    /// Gmail-style destinations: the account address *is* the sends-from
+    /// address, so one field is enough.
+    private var usesAccountAsAddress: Bool {
+        destination.type == .webmail && destination.providerValue.supportsAccountSelection
     }
 
     private func refreshTiles() { TileImageCache.clear(supportDirectory: model.supportDirectory) }
@@ -387,14 +416,18 @@ struct RulesView: View {
                         Spacer()
                         Text("Top rule wins · drag to reorder").font(.callout).foregroundStyle(.secondary)
                     }
-                    FieldRow(label: "If no rule matches", help: Help.fallback) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Text("If no rule matches").font(.title3)
+                            HelpButton(text: Help.fallback)
+                        }
                         Picker("", selection: Binding(
                             get: { if case .destination(let id) = model.config.fallback { return id } else { return "chooser" } },
                             set: { model.config.fallback = $0 == "chooser" ? .chooser : .destination($0) })) {
                             Text("Show the chooser").tag("chooser")
                             ForEach(model.config.destinations) { Text($0.name).tag($0.id) }
                         }
-                        .labelsHidden().fixedSize()
+                        .labelsHidden().frame(maxWidth: 320, alignment: .leading)
                     }
                 }
                 .controlSize(.large)

@@ -27,7 +27,7 @@ struct HistoryView: View {
                 .padding(12)
                 .background(.orange.opacity(0.12))
             }
-            historySplit
+            historySplit.frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
@@ -39,6 +39,7 @@ struct HistoryView: View {
                 if model.historyItems.isEmpty {
                     ContentUnavailableView("Nothing routed yet", systemImage: "clock",
                                            description: Text("Every mailto: link and .eml reply Mailto Segue hands off shows up here."))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List(filtered, selection: $selectedID) { item in
                         HStack(spacing: 10) {
@@ -58,7 +59,7 @@ struct HistoryView: View {
                     }
                 }
             }
-            .frame(minWidth: 360)
+            .frame(minWidth: 360, maxWidth: .infinity, maxHeight: .infinity)
 
             if let item = filtered.first(where: { $0.id == selectedID }) {
                 HistoryDetail(model: model, item: item)

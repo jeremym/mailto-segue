@@ -84,6 +84,10 @@ enum Discovery {
         return apps
     }
 
+    static func defaultBrowser() -> InstalledApp? {
+        NSWorkspace.shared.urlForApplication(toOpen: URL(string: "https://example.com")!).flatMap(app(at:))
+    }
+
     static func installedBrowsers() -> [InstalledApp] {
         let urls = NSWorkspace.shared.urlsForApplications(toOpen: URL(string: "https://example.com")!)
         return urls.compactMap(app(at:)).filter { BrowserLauncher.family(of: $0.bundleID) != .other }

@@ -104,6 +104,16 @@ final class ConfigTests: XCTestCase {
         XCTAssertTrue(issues.contains { $0.contains("fallback points at unknown destination 'ghost'") })
     }
 
+    func testDuplicateShortcutsAreReported() {
+        var config = Config()
+        config.destinations = [Destination(id: "a", name: "A", type: .clipboard, key: "1"),
+                               Destination(id: "b", name: "B", type: .clipboard, key: "1"),
+                               Destination(id: "c", name: "C", type: .clipboard, key: "2")]
+        let issues = config.validate()
+        XCTAssertEqual(issues.count, 1)
+        XCTAssertTrue(issues[0].contains("shortcut '1' is used by both 'A' and 'B'"))
+    }
+
     func testMinimalConfigDecodesWithDefaults() throws {
         let data = Data(#"{ "destinations": [ { "id": "copy", "name": "Copy", "type": "clipboard" } ] }"#.utf8)
         let config = try ConfigStore.decode(data)
