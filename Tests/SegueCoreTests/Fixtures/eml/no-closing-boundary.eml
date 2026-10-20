@@ -1,0 +1,13 @@
+From: a@x.com
+To: me@work.com
+Subject: unterminated
+Content-Type: multipart/alternative; boundary="b"
+
+--b
+Content-Type: text/plain
+
+the text part
+--b
+Content-Type: text/html
+
+<p>the html part</p>

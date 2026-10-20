@@ -1,0 +1,6 @@
+From: Zoë <zoe@x.com>
+To: me@work.com
+Subject: naïve raw utf-8 header
+Content-Type: text/plain; charset=utf-8
+
+body

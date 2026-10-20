@@ -1,0 +1,25 @@
+From: a@x.com
+To: me@work.com
+Subject: nested
+Content-Type: multipart/mixed; boundary="outer"
+
+--outer
+Content-Type: multipart/alternative; boundary="inner"
+
+--inner
+Content-Type: text/plain
+
+inner text
+--inner
+Content-Type: text/html
+
+<p>inner html</p>
+--inner--
+--outer
+Content-Type: message/rfc822
+
+From: forwarded@x.com
+Subject: original
+
+original body
+--outer--

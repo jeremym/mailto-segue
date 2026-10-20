@@ -1,0 +1,38 @@
+From: pat@acme.com
+To: me@work.com, other@work.com
+Cc: Me <me@work.com>, boss@work.com
+Reply-To: replies@acme.com
+Subject: Re: Files
+Date: Sat, 17 Oct 2026 10:00:00 +0000 (UTC)
+Message-ID: <m2@acme.com>
+In-Reply-To: <m1@acme.com>
+References: <m0@acme.com> <m1@acme.com>
+Content-Type: multipart/mixed; boundary="mixed"
+
+--mixed
+Content-Type: multipart/related; boundary="related"
+
+--related
+Content-Type: text/html; charset=utf-8
+
+<p>See the <b>attached</b> file.</p><img src="cid:logo@acme">
+--related
+Content-Type: image/png
+Content-ID: <logo@acme>
+Content-Disposition: inline; filename="logo.png"
+Content-Transfer-Encoding: base64
+
+iVBORw0KGgpmYWtlcG5n
+--related--
+--mixed
+Content-Type: application/pdf; name="report.pdf"
+Content-Disposition: attachment; filename*=utf-8''Q3%20report%20caf%C3%A9.pdf
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQgZmFrZSBwZGYgYnl0ZXM=
+--mixed
+Content-Type: text/plain; name="notes.txt"
+Content-Disposition: attachment; filename="notes.txt"
+
+just notes
+--mixed--

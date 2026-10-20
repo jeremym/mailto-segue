@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "fallback": "chooser",
+  "destinations": [
+    { "id": "gmail-personal", "name": "Gmail — personal", "key": "1",
+      "type": "webmail", "provider": "gmail", "account": { "index": 0 },
+      "browser": { "bundleID": "com.google.Chrome", "profile": "Default", "profileName": "Your Chrome" },
+      "sendsAs": ["jeremy@example.com"] },
+    { "id": "gmail-work", "name": "Gmail — work", "key": "2",
+      "type": "webmail", "provider": "gmail", "account": { "email": "me@work.com" },
+      "browser": { "bundleID": "com.google.Chrome", "profile": "Profile 1", "profileName": "Work", "windowMode": "app" },
+      "sendsAs": ["me@work.com"], "color": "#1A73E8", "image": "images/work.png", "pinned": true },
+    { "id": "yahoo", "name": "Yahoo", "key": "3",
+      "type": "webmail", "provider": "yahoo",
+      "browser": { "bundleID": "com.apple.Safari" }, "sendsAs": ["me@yahoo.com"] },
+    { "id": "mimestream", "name": "Mimestream", "key": "m",
+      "type": "app", "bundleID": "com.mimestream.Mimestream" },
+    { "id": "copy", "name": "Copy address", "key": "c",
+      "type": "clipboard", "copy": "addresses" }
+  ],
+  "rules": [
+    { "name": "Reply from the account that received it", "builtin": "replyFromReceiver", "enabled": true },
+    { "name": "Slack → work", "enabled": true, "match": "all",
+      "when": [ { "field": "sourceApp", "op": "is", "value": "com.tinyspeck.slackmacgap" } ],
+      "then": "gmail-work" },
+    { "name": "Clients from acme.com", "enabled": true, "match": "any",
+      "when": [ { "field": "to.domain", "op": "domainIs", "value": "acme.com" },
+                { "field": "original.from.domain", "op": "domainIs", "value": "acme.com" } ],
+      "then": "gmail-work" }
+  ],
+  "chooser": { "layout": "largeTiles", "autoLayout": false, "textScale": 1.4,
+               "forceModifier": "option", "position": "center", "learnDefault": true },
+  "eml": { "autoRoute": false },
+  "history": { "keepItems": 500, "maxMB": 50 },
+  "general": { "stayRunning": false, "plusAsSpace": false }
+}
