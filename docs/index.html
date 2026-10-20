@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mailto Segue — every email link, exactly where you want it</title>
+  <meta name="description" content="Mailto Segue is a small, open-source macOS app that becomes your default email app and routes every mailto: link to the right Gmail account, browser, or mail app. No passwords, no telemetry, no background process.">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Mailto Segue — every email link, exactly where you want it">
+  <meta property="og:description" content="A small, open-source macOS app that routes every mailto: link to the right Gmail account, browser, or mail app.">
+  <meta property="og:image" content="images/chooser-large.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" type="image/png" href="images/icon.png">
+  <link rel="apple-touch-icon" href="images/icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="#top">
+        <img src="images/icon.png" alt="" width="40" height="40">
+        <span>Mailto&nbsp;Segue</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#privacy">Privacy</a></li>
+        <li><a href="#install">Install</a></li>
+        <li><a class="nav-gh" href="https://github.com/jeremym/mailto-segue">GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero" id="top">
+      <div class="hero-text">
+        <p class="eyebrow">Open-source · macOS 14+</p>
+        <h1>Every email link, exactly where you want it.</h1>
+        <p class="lead">
+          Mailto Segue becomes your default email app, then hands each
+          <code>mailto:</code> link to the right place: a specific Gmail account,
+          a specific browser, or a desktop mail app. One click and it's gone.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#install">Install</a>
+          <a class="btn btn-ghost" href="https://github.com/jeremym/mailto-segue">View on GitHub</a>
+        </div>
+        <p class="status-note" role="note">
+          <strong>Status:</strong> v1.0 is built and tested. The first public
+          release is on the way — nothing is published yet.
+        </p>
+      </div>
+      <div class="hero-shot">
+        <img src="images/chooser-large.png"
+             alt="The Mailto Segue chooser: large tiles for Gmail work, Gmail personal, Proton, Mail, Copy address and Chrome's handler. The highlighted tile shows a keyboard number so you can press it."
+             width="690" height="503" loading="eager">
+      </div>
+    </section>
+
+    <!-- THE IDEA -->
+    <section class="band">
+      <div class="band-inner narrow center">
+        <h2>Click a link. Pick a button. Done.</h2>
+        <p class="big">
+          No more "which account is this even going to?" When you click an email
+          link, a chooser pops up with a big picture button for each of your
+          destinations. Click one, or press its number, and the draft opens where
+          you meant it to.
+        </p>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how" class="section">
+      <div class="section-head center">
+        <h2>How it works</h2>
+      </div>
+
+      <div class="step">
+        <div class="step-text">
+          <span class="step-num">1</span>
+          <h3>Make it your email app</h3>
+          <p>
+            Open Mailto Segue once. It offers to become your default email app and
+            to open saved <code>.eml</code> files. It also finds the Gmail accounts,
+            browsers and mail apps already on your Mac and turns them into buttons.
+          </p>
+        </div>
+        <figure class="step-shot">
+          <img src="images/welcome.png"
+               alt="The welcome screen: Make Mailto Segue your email app, also open .eml files, and a row of buttons it found on your Mac — two Gmail accounts and Copy address."
+               width="765" height="718" loading="lazy">
+        </figure>
+      </div>
+
+      <div class="step reverse">
+        <div class="step-text">
+          <span class="step-num">2</span>
+          <h3>Click any email link</h3>
+          <p>
+            The chooser appears on screen in under 200&nbsp;ms. Click a button or
+            press its number. <kbd>Esc</kbd> cancels, and you can type to filter.
+            Tap <strong>Always for this app</strong> or <strong>Always for this
+            domain</strong> to skip the chooser next time.
+          </p>
+        </div>
+        <figure class="step-shot">
+          <img src="images/chooser-live.png"
+               alt="The chooser over a browser window, routing a mailto link from Firefox: tiles for two Gmail accounts and Copy address, with Always-for shortcuts underneath."
+               width="678" height="306" loading="lazy">
+        </figure>
+      </div>
+
+      <div class="step">
+        <div class="step-text">
+          <span class="step-num">3</span>
+          <h3>Tune your buttons</h3>
+          <p>
+            Rename any button, give it a picture, assign a keyboard shortcut, and
+            point it at a service, a browser and an account. Plain labels, boxed
+            fields, a <strong>?</strong> on anything that needs a sentence. Never a
+            password or a sign-in.
+          </p>
+        </div>
+        <figure class="step-shot">
+          <img src="images/destinations.png"
+               alt="The destinations editor: a list of buttons on the left and, on the right, fields for name, keyboard shortcut, service, browser, Gmail account, picture and colour."
+               width="1159" height="738" loading="lazy">
+        </figure>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features" class="section alt">
+      <div class="section-head center">
+        <h2>What it does</h2>
+      </div>
+      <ul class="feature-grid">
+        <li class="feature">
+          <h3>The right account and browser</h3>
+          <p>Send a link to a specific Gmail account, in a specific browser and
+            profile — or to Mail, Mimestream, Outlook, Spark, Thunderbird, or the
+            clipboard.</p>
+        </li>
+        <li class="feature">
+          <h3>Rules that decide for you</h3>
+          <p>"Links clicked in Slack → work Gmail." "Anything to acme.com → work
+            Gmail." Match by recipient, sender, or the app that sent the link.</p>
+        </li>
+        <li class="feature">
+          <h3>Reply to <code>.eml</code> files</h3>
+          <p>Double-click a saved message and reply from any account. If it was a
+            Gmail account, Segue opens the real thread so your reply stays
+            threaded.</p>
+        </li>
+        <li class="feature">
+          <h3>It doesn't hang around</h3>
+          <p>Not a menu-bar app. macOS launches it per link, it routes, it quits.
+            Built to show the chooser in under 200&nbsp;ms. Resident mode is an
+            opt-in setting.</p>
+        </li>
+        <li class="feature">
+          <h3>A <code>segue</code> command</h3>
+          <p>Route links, open messages, run <code>segue doctor</code>, or make
+            and restore the default handler — all from the terminal.</p>
+        </li>
+        <li class="feature">
+          <h3>A marshaller, not a client</h3>
+          <p>It never composes, edits or sends mail, and never asks for your
+            password. It decides <em>where</em> a draft opens. You still type in
+            Gmail, Mail, or wherever it lands.</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- PRIVACY -->
+    <section id="privacy" class="section">
+      <div class="section-head center">
+        <h2>Private by design</h2>
+        <p class="section-sub">No accounts. No passwords. No network calls of its own.</p>
+      </div>
+      <ul class="privacy-list">
+        <li><strong>No telemetry, no tracking.</strong> Mailto Segue only opens the URLs you asked for. Your webmail sign-in stays in your browser.</li>
+        <li><strong>HTML email is shown with remote images and scripts blocked</strong>, so tracking pixels never fire.</li>
+        <li><strong>Everything stays on your Mac</strong>, in a plain JSON file you can read, edit, or keep in your dotfiles.</li>
+        <li><strong>No special permissions.</strong> No Accessibility, Automation or Full Disk Access.</li>
+      </ul>
+    </section>
+
+    <!-- INSTALL -->
+    <section id="install" class="section alt">
+      <div class="section-head center">
+        <h2>Install</h2>
+        <p class="section-sub">Once v0.1 ships, with Homebrew:</p>
+      </div>
+      <div class="install-box">
+        <pre><code>brew install --cask jeremym/tap/mailto-segue
+open -a "Mailto Segue"</code></pre>
+      </div>
+      <p class="install-note center">
+        Then click <strong>Make Mailto Segue my email app</strong> and confirm the
+        macOS prompt. Prefer to build it yourself? Clone the repo and run
+        <code>make install</code>. Full instructions are in the
+        <a href="https://github.com/jeremym/mailto-segue">README</a>.
+      </p>
+      <p class="install-note center muted">
+        Signed with the project's own certificate (not an Apple Developer ID) and
+        verified by a published checksum. macOS 14 Sonoma or later · universal
+        binary · <a href="https://github.com/jeremym/mailto-segue/blob/main/LICENSE">MIT licensed</a>.
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="images/icon.png" alt="" width="32" height="32">
+        <span>Mailto&nbsp;Segue</span>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="https://github.com/jeremym/mailto-segue">GitHub</a>
+        <a href="https://github.com/jeremym/mailto-segue/blob/main/LICENSE">License (MIT)</a>
+        <a href="https://overtonefoundry.com">Overtone Foundry</a>
+      </nav>
+      <p class="footer-made">Made by <a href="https://overtonefoundry.com">Overtone Foundry</a>.</p>
+    </div>
+  </footer>
+</body>
+</html>
