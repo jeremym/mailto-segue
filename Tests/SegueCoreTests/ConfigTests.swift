@@ -28,7 +28,7 @@ final class ConfigTests: XCTestCase {
         XCTAssertEqual(config.chooser.position, .center)
         XCTAssertFalse(config.general.stayRunning)
         XCTAssertEqual(config.validate(), [])
-        XCTAssertEqual(config.myAddresses, ["jeremy.mooer@gmail.com", "me@work.com", "me@yahoo.com"])
+        XCTAssertEqual(config.myAddresses, ["jeremy@example.com", "me@work.com", "me@yahoo.com"])
         XCTAssertEqual(config.activeDestinations.first?.id, "gmail-work", "pinned first")
     }
 

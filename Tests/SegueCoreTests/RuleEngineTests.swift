@@ -9,7 +9,7 @@ final class RuleEngineTests: XCTestCase {
         work.sendsAs = ["me@work.com"]
         var personal = Destination(id: "gmail-personal", name: "Gmail — personal", type: .webmail)
         personal.provider = .gmail
-        personal.sendsAs = ["jeremy@gmail.com"]
+        personal.sendsAs = ["jeremy@example.com"]
         var mail = Destination(id: "mail", name: "Mail", type: .app)
         mail.bundleID = "com.apple.mail"
         c.destinations = [work, personal, mail]

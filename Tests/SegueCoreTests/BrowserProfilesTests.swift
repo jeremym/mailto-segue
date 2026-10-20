@@ -6,14 +6,14 @@ final class BrowserProfilesTests: XCTestCase {
         let json = """
         { "profile": { "info_cache": {
             "Profile 2": { "name": "Side", "user_name": "" },
-            "Default": { "name": "Your Chrome", "user_name": "jeremy@gmail.com" },
+            "Default": { "name": "Your Chrome", "user_name": "jeremy@example.com" },
             "Profile 1": { "name": "Work", "user_name": "me@work.com" },
             "Guest Profile": { "name": "" }
         } }, "other": 1 }
         """
         let profiles = ChromiumProfiles.parse(localState: Data(json.utf8))
         XCTAssertEqual(profiles.map(\.directory), ["Default", "Profile 1", "Profile 2", "Guest Profile"])
-        XCTAssertEqual(profiles[0].userName, "jeremy@gmail.com")
+        XCTAssertEqual(profiles[0].userName, "jeremy@example.com")
         XCTAssertEqual(profiles[1].name, "Work")
         XCTAssertNil(profiles[2].userName)
         XCTAssertEqual(profiles[3].name, "Guest Profile", "empty name falls back to the directory")

@@ -5,7 +5,7 @@
     { "id": "gmail-personal", "name": "Gmail — personal", "key": "1",
       "type": "webmail", "provider": "gmail", "account": { "index": 0 },
       "browser": { "bundleID": "com.google.Chrome", "profile": "Default", "profileName": "Your Chrome" },
-      "sendsAs": ["jeremy.mooer@gmail.com"] },
+      "sendsAs": ["jeremy@example.com"] },
     { "id": "gmail-work", "name": "Gmail — work", "key": "2",
       "type": "webmail", "provider": "gmail", "account": { "email": "me@work.com" },
       "browser": { "bundleID": "com.google.Chrome", "profile": "Profile 1", "profileName": "Work", "windowMode": "app" },
