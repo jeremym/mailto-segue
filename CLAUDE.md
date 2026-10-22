@@ -14,7 +14,7 @@
   - `02-V1-Plan.md`: the milestones (M0–M12), architecture, config schema, test plan. **Read it before starting a milestone.**
   - `03-Research.md`: verified facts with sources (webmail URLs, browser profiles, Homebrew, LaunchServices, icons, Tauri vs Swift). Check here before researching again.
   - `04-Plan-Review-2026-10-19.md`: the round-3 review and the feature ideas it added.
-- Record durable decisions in the vault (append to `00-TOC.md` or the plan's Decisions section), not only in chat. When a milestone is done, update the status in `00-TOC.md`.
+- Record durable decisions in the vault (append to `00-TOC.md` or the plan's Decisions section), not only in chat. When a milestone is done, update the status in `00-TOC.md`. **Do this without asking** — the vault is the source of truth and recording there is expected, not an action to confirm.
 - Nothing about this project lives in `~/.claude` or `.context/`. Everything is in the vault or in this repo.
 
 ## Git rules (strict)

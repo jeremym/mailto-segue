@@ -32,9 +32,7 @@ cask "mailto-segue" do
 
   uninstall quit: "com.overtonefoundry.segue"
 
-  zap trash: [
-    "~/Library/Application Support/Mailto Segue",
-  ]
+  zap trash: "~/Library/Application Support/Mailto Segue"
 
   caveats <<~EOS
     Mailto Segue is signed with the project's own certificate, not an Apple Developer
