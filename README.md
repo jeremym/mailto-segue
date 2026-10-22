@@ -28,12 +28,13 @@ Mailto Segue isn't a menu-bar app and doesn't run in the background. macOS launc
 
 Mailto Segue is a **marshaller**, not a mail client. It never composes, edits or sends email, and it never asks for your mail password. It decides *where* a draft opens. You still type your message in Gmail, Yahoo, Mail.app, or wherever it lands.
 
-> **Status:** the code for v1.0 is written (M0–M12) and unit-tested. The first release is waiting on
-> the signing certificate and the real-browser checks in `docs/manual-test.md`. Nothing is published yet.
+> **Status:** v0.0.1 is published — `brew install --cask jeremym/tap/mailto-segue`. The code for v1.0
+> (M0–M12) is written and unit-tested; the real-browser checks in `docs/manual-test.md` are the
+> remaining manual verification.
 
 ---
 
-## Install (once v0.1 ships)
+## Install
 
 ```sh
 brew install --cask jeremym/tap/mailto-segue
@@ -126,7 +127,7 @@ Release builds are signed with a long-lived, self-signed **"Segue Release"** cer
 
 ```sh
 shasum -a 256 MailtoSegue-1.2.3.zip                 # matches the .sha256 on the release
-codesign -d -r- "$HOME/Applications/Mailto Segue.app"  # certificate leaf = H"<hash published here once the cert exists>"
+codesign -d -r- "$HOME/Applications/Mailto Segue.app"  # certificate leaf = H"272ab5c5fcc895597698dcd78c2056c06704b0c7"
 ```
 
 The leaf hash is the same for every release. If it ever changes, the release notes will say why.
